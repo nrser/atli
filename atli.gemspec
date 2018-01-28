@@ -18,4 +18,13 @@ Gem::Specification.new do |spec|
   spec.required_rubygems_version = ">= 1.3.5"
   spec.summary = spec.description
   spec.version = Thor::VERSION
+  
+  # Dependencies
+  # ============================================================================
+  # 
+  # NOTE Development dependencies are in `//Gemfile`
+  # 
+  
+  # My guns
+  spec.add_dependency "nrser", '~> 0.1', ">= 0.1.1"
 end
