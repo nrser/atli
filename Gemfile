@@ -12,6 +12,9 @@ group :development do
     gem "pry-debugger"
     gem "pry-stack_explorer"
   end
+  
+  # Yard for service docs locally
+  gem 'yard', '~> 0.9.12'
 end
 
 group :test do
