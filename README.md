@@ -1,38 +1,35 @@
-Thor
+Atli
 ====
-
-[![Gem Version](http://img.shields.io/gem/v/thor.svg)][gem]
-[![Build Status](http://img.shields.io/travis/erikhuda/thor.svg)][travis]
-[![Dependency Status](http://img.shields.io/gemnasium/erikhuda/thor.svg)][gemnasium]
-[![Code Climate](http://img.shields.io/codeclimate/github/erikhuda/thor.svg)][codeclimate]
-[![Coverage Status](http://img.shields.io/coveralls/erikhuda/thor.svg)][coveralls]
-
-[gem]: https://rubygems.org/gems/thor
-[travis]: http://travis-ci.org/erikhuda/thor
-[gemnasium]: https://gemnasium.com/erikhuda/thor
-[codeclimate]: https://codeclimate.com/github/erikhuda/thor
-[coveralls]: https://coveralls.io/r/erikhuda/thor
 
 Description
 -----------
-Thor is a simple and efficient tool for building self-documenting command line
-utilities.  It removes the pain of parsing command line options, writing
-"USAGE:" banners, and can also be used as an alternative to the [Rake][rake]
-build tool.  The syntax is Rake-like, so it should be familiar to most Rake
-users.
+[Thor][] is a simple and efficient tool for building self-documenting command line utilities.
 
-[rake]: https://github.com/ruby/rake
+[Thor]: https://github.com/erikhuda/thor
+
+Atli is a fork of Thor that adds some stuff. For the time being, it intends to be a drop-in replacement, though this might change at some point in the future.
+
+This means that Alti still uses the Thor name and file-space. You require it like
+
+```ruby
+require 'thor'
+```
+
+and use it exactly like you would Thor.
+
+As you may suspect, this is likely to wreck havoc if you have real Thor installed as well. Please choose one.
 
 Installation
 ------------
-    gem install thor
+    gem install atli
 
 Usage and documentation
 -----------------------
-Please see the [wiki][] for basic usage and other documentation on using Thor. You can also checkout the [official homepage][homepage].
 
-[wiki]: https://github.com/erikhuda/thor/wiki
-[homepage]: http://whatisthor.com/
+At some point, I'd like to document the additional features that Atli introduces on top of Thor, and even perhaps add general documentation with greater coverage and detail than what is available for Thor (sparse documentation is probably it's weakest point when getting started), but for now all you've got is the [Thor wiki][] and [Thor homepage][].
+
+[Thor wiki]: https://github.com/nrser/atli/wiki
+[Thor homepage]: http://whatisthor.com/
 
 Contributing
 ------------
