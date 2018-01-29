@@ -34,6 +34,15 @@ class Thor
       handle_argument_error?(instance, e, caller) ? instance.class.handle_argument_error(self, e, args, arity) : (raise e)
     rescue NoMethodError => e
       handle_no_method_error?(instance, e, caller) ? instance.class.handle_no_command_error(name) : (raise e)
+    rescue Exception => error
+      instance.send :on_run_error, error, self, args
+      
+      # We should not get here!!!
+      # {Thor::Base#on_run_error} should exit or re-raise :(
+      logger.error "#on_run_error failed to exit or re-raise", error: error
+      
+      # If you want something done right...
+      raise error
     end
 
     # Returns the formatted usage by injecting given required arguments

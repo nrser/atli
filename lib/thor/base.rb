@@ -21,7 +21,9 @@ class Thor
                            action add_file create_file in_root inside run run_ruby_script)
 
   TEMPLATE_EXTNAME = ".tt"
-
+  
+  # Shared base behavior included in {Thor} and {Thor::Group}.
+  # 
   module Base
     attr_accessor :options, :parent_options, :args
 
@@ -86,6 +88,52 @@ class Thor
       thor_args.parse(to_parse).each { |k, v| __send__("#{k}=", v) }
       @args = thor_args.remaining
     end
+    
+    
+    protected
+    # ========================================================================
+      
+      # Atli addition: An error handling hook that is called from
+      # {Thor::Command#run} when running a command raises an unhandled
+      # exception.
+      # 
+      # I don't believe errors are *recoverable* at this point, but this
+      # hook allows the {Thor} subclass to respond to expected errors and
+      # gracefully inform the user.
+      # 
+      # It's basically `goto fail` or whatever.
+      # 
+      # User overrides should always exit or re-raise the error.
+      # 
+      # The base implementation here simply re-raises.
+      # 
+      # Note that {ArgumentError} and {NoMethodError} are both rescued in
+      # {Thor::Command#run} and passed off to Thor's relevant
+      # `.handle_*_error` methods, so you probably won't be able to intercept
+      # any of those.
+      # 
+      # Generally, it's best to use this to respond to custom, specific errors
+      # so you can easily bail out with a `raise` from anywhere in the
+      # application and still provide a properly formatted response and exit
+      # status to the user.
+      # 
+      # Errors that are only expected in a single command
+      # 
+      # @param [Exception] error
+      #   The error the bubbled up to {Thor::Command#run}.
+      # 
+      # @param [Thor::Command] command
+      #   The command instance that was running when the error occurred.
+      # 
+      # @param [Array<String>] args
+      #   The arguments to the command that was running.
+      # 
+      def on_run_error error, command, args
+        raise error
+      end
+      
+    # end protected
+    
 
     class << self
       def included(base) #:nodoc:
@@ -674,6 +722,7 @@ class Thor
       def dispatch(command, given_args, given_opts, config) #:nodoc:
         raise NotImplementedError
       end
-    end
-  end
-end
+      
+    end # self << class
+  end # module Base
+end # class Thor
