@@ -391,7 +391,8 @@ class Thor
     # 
     # @example
     #   class MyCLI < Thor
-    #     # Declare a shared option
+    #     
+    #     # Declare a shared option:
     #     shared_option :force,
     #       groups: :write,
     #       desc: "Force the operation",
@@ -401,9 +402,16 @@ class Thor
     #     
     #     desc            "write [OPTIONS] path",
     #                     "Write to a path"
+    #     
+    #     # Add the shared options to the method:
     #     include_options groups: :write
+    #     
     #     def write       path
+    #       
+    #       # Get a slice of `#options` with any of the `:write` group options
+    #       # that were provided and use it in a method call:
     #       MyModule.write path, **option_kwds( groups: :write )
+    #       
     #     end
     #   end
     # 
@@ -689,8 +697,10 @@ class Thor
     # +**+ usage in a method call for the option names and shared option
     # groups.
     # 
-    # === Parameters
-    # names<Array[Symbol]>:: Option names to include.
+    # @param (see .find_shared_method_options)
+    # 
+    # @return [Hash<Symbol, V>]
+    #   Map of option name to value.
     # 
     def option_kwds *names, groups: nil
       # Transform names into a set of strings
