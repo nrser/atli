@@ -1,26 +1,23 @@
+require 'set'
+
 class Thor
-  # A +Thor::Option+ that has an additional #groups attribute
+  # A {Thor::Option} that has an additional {#groups} attribute storing a
+  # set of group symbols that the option is a part of.
+  # 
   class SharedOption < Option
     
     # Shared option groups this option belongs to.
     # 
-    # Returns an Array of Symbol.
+    # @return [Set<Symbol>]
     #     
     attr_reader :groups
     
-
-    def initialize(name, options = {})
+    # 
+    # 
+    def initialize name, **options
       super name, options
       
-      @groups = if options.key? :groups
-        if options[:groups].is_a? Array
-          options[:groups]
-        else
-          [options[:groups]]
-        end
-      else
-        []
-      end
+      @groups = Set.new [*options[:groups]].map( &:to_sym )
     end
   end
 end

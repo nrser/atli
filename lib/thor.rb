@@ -160,52 +160,6 @@ class Thor
       build_option(name, options, scope)
     end
     alias_method :option, :method_option
-    
-    
-    def shared_method_options(options = nil)
-      @shared_method_options ||= {}
-      build_options(options, @shared_method_options) if options
-      @shared_method_options
-    end
-    
-    
-    # Declare a shared method option with an optional groups that can then
-    # be added by name or group to commands.
-    # 
-    # ==== Parameters
-    # name<Symbol>:: The name of the argument.
-    # options<Hash>:: Described below.
-    #
-    # ==== Options
-    # :desc     - Description for the argument.
-    # :required - If the argument is required or not.
-    # :default  - Default value for this argument. It cannot be required and have default values.
-    # :aliases  - Aliases for this option.
-    # :type     - The type of the argument, can be :string, :hash, :array, :numeric or :boolean.
-    # :banner   - String to show on usage notes.
-    # :hide     - If you want to hide this option from the help.
-    #
-    def shared_method_option(name, options = {})
-      # Don't think the `:for` option makes sense... that would just be a
-      # regular method option, right? I guess `:for` could be an array and
-      # apply the option to each command, but it seems like that would just
-      # be better as an extension to the {.method_option} behavior.
-      # 
-      # So, we raise if we see it
-      if options.key? :for
-        raise ArgumentError,
-          ".shared_method_option does not accept the `:for` option"
-      end
-      
-      build_shared_option(name, options)
-    end # #shared_method_option
-    alias_method :shared_option, :shared_method_option
-    
-    def shared_option_groups *groups
-      shared_method_options_for( *groups ).each { |name, option|
-        method_options[name] = option
-      }
-    end
 
     # Prints help information for the given command.
     #
@@ -387,6 +341,157 @@ class Thor
     def disable_required_check?(command) #:nodoc:
       command && disable_required_check.include?(command.name.to_sym)
     end
+    
+    # Atli Public Class Methods
+    # ========================================================================
+    
+    # @return [Hash<Symbol, Thor::SharedOption]
+    #   Get all shared options
+    # 
+    def shared_method_options(options = nil)
+      @shared_method_options ||= {}
+      if options
+        # We don't support this (yet at least)
+        raise NotImplementedError,
+          "Bulk set not supported, use .shared_method_option"
+        # build_shared_options(options, @shared_method_options)
+      end
+      @shared_method_options
+    end
+    alias_method :shared_options, :shared_method_options
+    
+    
+    # Find shared options given names and groups.
+    # 
+    # @param [*<Symbol>] *names
+    #   Individual shared option names to include.
+    # 
+    # @param [nil | Symbol | Enumerable<Symbol>] groups:
+    #   Single or list of shared option groups to include.
+    # 
+    # @return [Hash<Symbol, Thor::SharedOption>]
+    #   Hash mapping option names (as {Symbol}) to instances.
+    # 
+    def find_shared_method_options *names, groups: nil
+      groups_set = Set[*groups]
+      
+      shared_method_options.
+        select { |name, option|
+          names.include?( name ) || !(option.groups & groups_set).empty?
+        }
+    end
+    alias_method :find_shared_options, :find_shared_method_options
+    
+    
+    # Declare a shared method option with an optional groups that can then
+    # be added by name or group to commands.
+    # 
+    # The shared options can then be added to methods individually by name and
+    # collectively as groups with {Thor.include_method_options}.
+    # 
+    # @example
+    #   class MyCLI < Thor
+    #     # Declare a shared option
+    #     shared_option :force,
+    #       groups: :write,
+    #       desc: "Force the operation",
+    #       type: :boolean
+    #     
+    #     # ...
+    #     
+    #     desc            "write [OPTIONS] path",
+    #                     "Write to a path"
+    #     include_options groups: :write
+    #     def write       path
+    #       MyModule.write path, **option_kwds( groups: :write )
+    #     end
+    #   end
+    # 
+    # @param [Symbol] name
+    #   The name of the option.
+    # 
+    # @param [**<Symbol, V>] options
+    #   Keyword args used to initialize the {Thor::SharedOption}.
+    #   
+    #   All +**options+ are optional.
+    # 
+    # @option options [Symbol | Array<Symbol>] :groups
+    #   One or more _shared_ _option_ _group_ that the new option will belong
+    #   to.
+    #   
+    #   Examples:
+    #     groups: :read
+    #     groups: [:read, :write]
+    #   
+    #   *NOTE*  The keyword is +groups+ with an +s+! {Thor::Option} already has
+    #           a +group+ string attribute that, as far as I can tell, is only
+    #           
+    # 
+    # 
+    # @option options [String] :desc
+    #   Description for the option for help and feedback.
+    # 
+    # @option options [Boolean] :required
+    #   If the option is required or not.
+    # 
+    # @option options [Object] :default
+    #   Default value for this argument.
+    #   
+    #   It cannot be +required+ and have default values.
+    # 
+    # @option options [String | Array<String>] :aliases
+    #   Aliases for this option.
+    #   
+    #   Examples:
+    #     aliases: '-s'
+    #     aliases: '--other-name'
+    #     aliases: ['-s', '--other-name']
+    # 
+    # @option options [:string | :hash | :array | :numeric | :boolean] :type
+    #   Type of acceptable values, see
+    #   {types for method options}[https://github.com/erikhuda/thor/wiki/Method-Options#types-for-method_options]
+    #   in the Thor wiki.
+    # 
+    # @option options [String] :banner
+    #   String to show on usage notes.
+    # 
+    # @option options [Boolean] :hide
+    #   If you want to hide this option from the help.
+    # 
+    # @return (see .build_shared_option)
+    # 
+    def shared_method_option name, **options
+      # Don't think the `:for` option makes sense... that would just be a
+      # regular method option, right? I guess `:for` could be an array and
+      # apply the option to each command, but it seems like that would just
+      # be better as an extension to the {.method_option} behavior.
+      # 
+      # So, we raise if we see it
+      if options.key? :for
+        raise ArgumentError,
+          ".shared_method_option does not accept the `:for` option"
+      end
+      
+      build_shared_option(name, options)
+    end # #shared_method_option
+    alias_method :shared_option, :shared_method_option
+    
+    
+    # Add the {Thor::SharedOption} instances with +names+ and in +groups+ to
+    # the next defined command method.
+    # 
+    # @param (see .find_shared_method_options)
+    # @return (see .find_shared_method_options)
+    # 
+    def include_method_options *names, groups: nil
+      find_shared_method_options( *names, groups: groups ).
+        each do |name, option|
+          method_options[name] = option
+        end
+    end
+    
+    alias_method :include_options, :include_method_options
+    
 
   protected
 
@@ -555,13 +660,6 @@ class Thor
         options.merge(:check_default_type => check_default_type?)
       )
     end # #build_shared_option
-    
-    
-    def shared_method_options_for *groups
-      shared_method_options.
-        reject { |name, option| (option.groups & groups).empty? }.
-        to_h
-    end
   
   # end protected Class Methods
   end # class << self
@@ -587,27 +685,29 @@ class Thor
   protected # Instance Methods
   # ========================================================================
   
-  # Get a Hash mapping option name symbols to their values ready for
-  # +**+ usage in a method call for the option names and shared option
-  # groups.
-  # 
-  # === Parameters
-  # names<Array[Symbol]>:: Option names to include.
-  # 
-  def option_kwds *names, groups: nil
-    # Transform names into a set of strings
-    name_set = Set.new names.map( &:to_s )
-    
-    # Add groups (if any)
-    if groups
-      self.class.shared_method_options_for( *groups ).each do |name, option|
-        name_set << name.to_s
+    # Get a Hash mapping option name symbols to their values ready for
+    # +**+ usage in a method call for the option names and shared option
+    # groups.
+    # 
+    # === Parameters
+    # names<Array[Symbol]>:: Option names to include.
+    # 
+    def option_kwds *names, groups: nil
+      # Transform names into a set of strings
+      name_set = Set.new names.map( &:to_s )
+      
+      # Add groups (if any)
+      if groups
+        self.class.find_shared_options( groups: groups ).each do |name, option|
+          name_set << name.to_s
+        end
       end
+      
+      options.slice( *name_set ).sym_keys
     end
     
-    options.slice( *name_set ).sym_keys
-  end
-    
   # end protected Instance Methods
+  
+  no_commands { include SemanticLogger::Loggable }
   
 end # class Thor
