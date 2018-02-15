@@ -12,5 +12,5 @@ class Thor
   # 
   # @return [String]
   # 
-  VERSION = "0.20.0.2-dev"
+  VERSION = "0.20.0.2"
 end
