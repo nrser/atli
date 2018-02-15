@@ -17,8 +17,9 @@ class Thor
   HELP_MAPPINGS       = %w(-h -? --help -D)
 
   # Thor methods that should not be overwritten by the user.
-  THOR_RESERVED_WORDS = %w(invoke shell options behavior root destination_root relative_root
-                           action add_file create_file in_root inside run run_ruby_script)
+  THOR_RESERVED_WORDS = %w(invoke shell options behavior root destination_root
+                            relative_root action add_file create_file in_root
+                            inside run run_ruby_script)
 
   TEMPLATE_EXTNAME = ".tt"
   
@@ -34,8 +35,9 @@ class Thor
     # It should be done by the parser.
     #
     # ==== Parameters
-    # args<Array[Object]>:: An array of objects. The objects are applied to their
-    #                       respective accessors declared with <tt>argument</tt>.
+    # args<Array[Object]>:: An array of objects. The objects are applied to
+    #                       their respective accessors declared with
+    #                       <tt>argument</tt>.
     #
     # options<Hash>:: An options hash that will be available as self.options.
     #                 The hash given is converted to a hash with indifferent
@@ -44,6 +46,11 @@ class Thor
     # config<Hash>:: Configuration for this Thor class.
     #
     def initialize(args = [], local_options = {}, config = {})
+      logger.trace "#{ self.class.name }#initialize",
+        args:           args,
+        local_options:  local_options,
+        config:         config
+      
       parse_options = self.class.class_options
 
       # The start method splits inbound arguments at the first argument
@@ -66,11 +73,18 @@ class Thor
       # Let Thor::Options parse the options first, so it can remove
       # declared options from the array. This will leave us with
       # a list of arguments that weren't declared.
-      stop_on_unknown = self.class.stop_on_unknown_option? config[:current_command]
-      disable_required_check = self.class.disable_required_check? config[:current_command]
-      opts = Thor::Options.new(parse_options, hash_options, stop_on_unknown, disable_required_check)
+      stop_on_unknown = \
+        self.class.stop_on_unknown_option? config[:current_command]
+      disable_required_check = \
+        self.class.disable_required_check? config[:current_command]
+      opts = Thor::Options.new( parse_options,
+                                hash_options,
+                                stop_on_unknown,
+                                disable_required_check )
       self.options = opts.parse(array_options)
-      self.options = config[:class_options].merge(options) if config[:class_options]
+      if config[:class_options]
+        self.options = config[:class_options].merge(options)
+      end
 
       # If unknown options are disallowed, make sure that none of the
       # remaining arguments looks like an option.
@@ -165,7 +179,9 @@ class Thor
       #
       def register_klass_file(klass) #:nodoc:
         file = caller[1].match(/(.*):\d+/)[1]
-        Thor::Base.subclasses << klass unless Thor::Base.subclasses.include?(klass)
+        unless Thor::Base.subclasses.include?(klass)
+          Thor::Base.subclasses << klass
+        end
 
         file_subclasses = Thor::Base.subclass_files[File.expand_path(file)]
         file_subclasses << klass unless file_subclasses.include?(klass)
@@ -185,7 +201,8 @@ class Thor
         no_commands { super }
       end
 
-      # If you want to raise an error for unknown options, call check_unknown_options!
+      # If you want to raise an error for unknown options, call
+      # check_unknown_options!
       # This is disabled by default to allow dynamic invocations.
       def check_unknown_options!
         @check_unknown_options = true
@@ -199,8 +216,8 @@ class Thor
         !!check_unknown_options
       end
 
-      # If you want to raise an error when the default value of an option does not match
-      # the type call check_default_type!
+      # If you want to raise an error when the default value of an option does
+      # not match the type call check_default_type!
       # This is disabled by default for compatibility.
       def check_default_type!
         @check_default_type = true
@@ -254,13 +271,13 @@ class Thor
       #
       #   thor command --name=NAME
       #
-      # Besides, arguments are used inside your code as an accessor (self.argument),
-      # while options are all kept in a hash (self.options).
+      # Besides, arguments are used inside your code as an accessor
+      # (self.argument), while options are all kept in a hash (self.options).
       #
       # Finally, arguments cannot have type :default or :boolean but can be
       # optional (supplying :optional => :true or :required => false), although
-      # you cannot have a required argument after a non-required argument. If you
-      # try it, an error is raised.
+      # you cannot have a required argument after a non-required argument. If
+      # you try it, an error is raised.
       #
       # ==== Parameters
       # name<Symbol>:: The name of the argument.
@@ -270,12 +287,15 @@ class Thor
       # :desc     - Description for the argument.
       # :required - If the argument is required or not.
       # :optional - If the argument is optional or not.
-      # :type     - The type of the argument, can be :string, :hash, :array, :numeric.
-      # :default  - Default value for this argument. It cannot be required and have default values.
+      # :type     - The type of the argument, can be :string, :hash, :array,
+      #             :numeric.
+      # :default  - Default value for this argument. It cannot be required and
+      #             have default values.
       # :banner   - String to show on usage notes.
       #
       # ==== Errors
-      # ArgumentError:: Raised if you supply a required argument after a non required one.
+      # ArgumentError:: Raised if you supply a required argument after a non
+      #                 required one.
       #
       def argument(name, options = {})
         is_thor_reserved_word?(name, :argument)
@@ -294,8 +314,9 @@ class Thor
         if required
           arguments.each do |argument|
             next if argument.required?
-            raise ArgumentError, "You cannot have #{name.to_s.inspect} as required argument after " \
-                                "the non-required argument #{argument.human_name.inspect}."
+            raise ArgumentError,
+              "You cannot have #{name.to_s.inspect} as required argument " \
+              "after the non-required argument #{argument.human_name.inspect}."
           end
         end
 
@@ -338,9 +359,14 @@ class Thor
       # :desc::     -- Description for the argument.
       # :required:: -- If the argument is required or not.
       # :default::  -- Default value for this argument.
-      # :group::    -- The group for this options. Use by class options to output options in different levels.
-      # :aliases::  -- Aliases for this option. <b>Note:</b> Thor follows a convention of one-dash-one-letter options. Thus aliases like "-something" wouldn't be parsed; use either "\--something" or "-s" instead.
-      # :type::     -- The type of the argument, can be :string, :hash, :array, :numeric or :boolean.
+      # :group::    -- The group for this options. Use by class options to
+      #                 output options in different levels.
+      # :aliases::  -- Aliases for this option. <b>Note:</b> Thor follows a
+      #                 convention of one-dash-one-letter options. Thus
+      #                 aliases like "-something" wouldn't be parsed; use
+      #                 either "\--something" or "-s" instead.
+      # :type::     -- The type of the argument, can be :string, :hash, :array,
+      #                 :numeric or :boolean.
       # :banner::   -- String to show on usage notes.
       # :hide::     -- If you want to hide this option from the help.
       #
@@ -384,8 +410,9 @@ class Thor
         end
       end
 
-      # Defines the group. This is used when thor list is invoked so you can specify
-      # that only commands from a pre-defined group will be shown. Defaults to standard.
+      # Defines the group. This is used when thor list is invoked so you can
+      # specify that only commands from a pre-defined group will be shown.
+      # Defaults to standard.
       #
       # ==== Parameters
       # name<String|Symbol>
@@ -401,8 +428,8 @@ class Thor
       # Returns the commands for this Thor class.
       #
       # ==== Returns
-      # OrderedHash:: An ordered hash with commands names as keys and Thor::Command
-      #               objects as values.
+      # OrderedHash:: An ordered hash with commands names as keys and
+      #               Thor::Command objects as values.
       #
       def commands
         @commands ||= Thor::CoreExt::OrderedHash.new
@@ -412,11 +439,12 @@ class Thor
       # Returns the commands for this Thor class and all subclasses.
       #
       # ==== Returns
-      # OrderedHash:: An ordered hash with commands names as keys and Thor::Command
-      #               objects as values.
+      # OrderedHash:: An ordered hash with commands names as keys and
+      #               Thor::Command objects as values.
       #
       def all_commands
-        @all_commands ||= from_superclass(:all_commands, Thor::CoreExt::OrderedHash.new)
+        @all_commands ||= from_superclass(  :all_commands,
+                                            Thor::CoreExt::OrderedHash.new )
         @all_commands.merge!(commands)
       end
       alias_method :all_tasks, :all_commands
@@ -430,8 +458,8 @@ class Thor
       #
       # ==== Parameters
       # name<Symbol|String>:: The name of the command to be removed
-      # options<Hash>:: You can give :undefine => true if you want commands the method
-      #                 to be undefined from the class as well.
+      # options<Hash>:: You can give :undefine => true if you want commands the
+      #                 method to be undefined from the class as well.
       #
       def remove_command(*names)
         options = names.last.is_a?(Hash) ? names.pop : {}
@@ -513,7 +541,11 @@ class Thor
         config[:shell] ||= Thor::Base.shell.new
         dispatch(nil, given_args.dup, nil, config)
       rescue Thor::Error => e
-        config[:debug] || ENV["THOR_DEBUG"] == "1" ? (raise e) : config[:shell].error(e.message)
+        config[:debug] || (
+          ENV["THOR_DEBUG"] == "1" ?
+            (raise e) :
+            config[:shell].error(e.message)
+        )
         exit(1) if exit_on_failure?
       rescue Errno::EPIPE
         # This happens if a thor command is piped to something like `head`,
@@ -541,8 +573,13 @@ class Thor
       alias_method :public_task, :public_command
 
       def handle_no_command_error(command, has_namespace = $thor_runner) #:nodoc:
-        raise UndefinedCommandError, "Could not find command #{command.inspect} in #{namespace.inspect} namespace." if has_namespace
-        raise UndefinedCommandError, "Could not find command #{command.inspect}."
+        if has_namespace
+          raise UndefinedCommandError,
+            "Could not find command #{command.inspect} in " \
+            "#{namespace.inspect} namespace."
+        end
+        raise UndefinedCommandError,
+          "Could not find command #{command.inspect}."
       end
       alias_method :handle_no_task_error, :handle_no_command_error
 
@@ -591,7 +628,9 @@ class Thor
 
           list << item
           list << ["", "# Default: #{option.default}"] if option.show_default?
-          list << ["", "# Possible values: #{option.enum.join(', ')}"] if option.enum
+          if option.enum
+            list << ["", "# Possible values: #{option.enum.join(', ')}"]
+          end
         end
 
         shell.say(group_name ? "#{group_name} options:" : "Options:")
@@ -602,7 +641,8 @@ class Thor
       # Raises an error if the word given is a Thor reserved word.
       def is_thor_reserved_word?(word, type) #:nodoc:
         return false unless THOR_RESERVED_WORDS.include?(word.to_s)
-        raise "#{word.inspect} is a Thor reserved word and cannot be defined as #{type}"
+        raise "#{word.inspect} is a Thor reserved word and cannot be  " \
+              "defined as #{type}"
       end
 
       # Build an option and adds it to the given scope.
@@ -612,7 +652,10 @@ class Thor
       # options<Hash>:: Described in both class_option and method_option.
       # scope<Hash>:: Options hash that is being built up
       def build_option(name, options, scope) #:nodoc:
-        scope[name] = Thor::Option.new(name, options.merge(:check_default_type => check_default_type?))
+        scope[name] = Thor::Option.new(
+          name,
+          options.merge(:check_default_type => check_default_type?)
+        )
       end
 
       # Receives a hash of options, parse them and add to the scope. This is a
@@ -637,7 +680,9 @@ class Thor
         elsif command = all_commands[name.to_s] # rubocop:disable AssignmentInCondition
           commands[name.to_s] = command.clone
         else
-          raise ArgumentError, "You supplied :for => #{name.inspect}, but the command #{name.inspect} could not be found."
+          raise ArgumentError,
+            "You supplied :for => #{name.inspect}, but the command " \
+            "#{name.inspect} could not be found."
         end
       end
       alias_method :find_and_refresh_task, :find_and_refresh_command
@@ -707,8 +752,8 @@ class Thor
       def baseclass #:nodoc:
       end
 
-      # SIGNATURE: Creates a new command if valid_command? is true. This method is
-      # called when a new method is added to the class.
+      # SIGNATURE: Creates a new command if valid_command? is true. This method
+      # is called when a new method is added to the class.
       def create_command(meth) #:nodoc:
       end
       alias_method :create_task, :create_command
