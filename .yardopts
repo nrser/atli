@@ -1,3 +1,5 @@
+--protected
+--markup rdoc
 lib/*.rb
 lib/**/*.rb
 -
