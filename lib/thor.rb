@@ -1,5 +1,6 @@
 require "set"
 require 'nrser'
+require 'semantic_logger'
 require "thor/base"
 
 using NRSER

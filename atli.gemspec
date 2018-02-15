@@ -26,5 +26,5 @@ Gem::Specification.new do |spec|
   # 
   
   # My guns
-  spec.add_dependency "nrser", '~> 0.1', ">= 0.1.1"
+  spec.add_dependency "nrser", '~> 0.1', ">= 0.1.2"
 end

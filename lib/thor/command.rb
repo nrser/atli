@@ -1,3 +1,5 @@
+require 'semantic_logger'
+
 class Thor
   class Command < Struct.new( :name,
                               :description,
@@ -74,10 +76,6 @@ class Thor
         namespace: namespace,
         subcommand: subcommand,
         ancestor_name: ancestor_name
-      
-      if klass == Locd::CLI::Command::Main && subcommand == true
-        raise "HERE"
-      end
       
       if ancestor_name
         formatted = "#{ancestor_name} ".dup # add space
