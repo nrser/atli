@@ -1,4 +1,9 @@
 class Thor
+  # @note
+  #   Included when {Thor::Base} is included - and that's the only place it's
+  #   included from what I can find, so this stuff just ends up in {Thor}
+  #   and {Thor::Group}.
+  # 
   module Invocation
     def self.included(base) #:nodoc:
       base.extend ClassMethods
