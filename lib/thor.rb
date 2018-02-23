@@ -383,7 +383,16 @@ class Thor
     #   Get all shared options
     # 
     def shared_method_options(options = nil)
-      @shared_method_options ||= {}
+      @shared_method_options ||= begin
+        # Reach up the inheritance chain, if there's anyone there
+        if superclass.respond_to? __method__
+          superclass.send( __method__ ).dup
+        else
+          # Or just default to empty
+          {}
+        end
+      end
+      
       if options
         # We don't support this (yet at least)
         raise NotImplementedError,
