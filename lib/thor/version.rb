@@ -1,16 +1,22 @@
 class Thor
   # Gem version string.
   # 
-  # For now, Atli versions will start with the upstream Thor version they are
-  # up-to-date with and use an additional fourth version "numberlet" to track
-  # fork changes.
-  # 
-  # So, `0.20.0.0` is up-to-date with Thor `0.20.0` (actually, a little past
-  # it 'cause I just kept the few minor commits past `v0.20.0` present in
-  # `master` at the time of the fork) with nothing really changed except the
-  # gem name and the version.
+  # See {file:doc/files/notes/versioning.md} for details.
   # 
   # @return [String]
   # 
-  VERSION = "0.20.0.3.dev"
+  VERSION = "0.1.0.dev"
+  
+  
+  # The version of Thor that Atli is up to date with.
+  # 
+  # Right now, it's the version of Thor that was forked, but if I'm able to
+  # merge Thor updates in and end up doing so, I intend to update this to
+  # reflect it.
+  # 
+  # See {file:doc/files/notes/versioning.md} for details.
+  # 
+  # @return [String]
+  # 
+  THOR_VERSION = '0.20.0'
 end

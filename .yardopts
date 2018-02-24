@@ -3,5 +3,6 @@
 lib/*.rb
 lib/**/*.rb
 -
-CHANGELOG.rdoc
 LICENSE.md
+README.md
+doc/files/**/*.md

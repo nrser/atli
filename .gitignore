@@ -58,3 +58,12 @@ tramp
 .rbx
 b/
 
+
+# Atli Additions & Overrides
+# ============================================================================
+
+# We puts other markdown sources under `//doc` and build docs to `//doc/site`
+# (using yard, see `//.yardopts`)
+!/doc/
+/doc/site/
+
