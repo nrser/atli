@@ -1,4 +1,8 @@
-Copyright (c) 2008 Yehuda Katz, Eric Hodel, et al.
+Atli is copyright (c) 2018 Neil Souza
+
+Atli is based on Thor, and released under the same license as follows.
+
+Thor is copyright (c) 2008 Yehuda Katz, Eric Hodel, et al.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
