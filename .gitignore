@@ -1,3 +1,18 @@
+##############################################################################
+# BEGIN QB.gitingore
+#
+# generated qb playbooks
+.qb-playbook.yml
+
+# ansible retry files
+.qb-playbook.retry
+#
+# END QB.gitingore
+##############################################################################
+
+# Stuff that came from Thor
+# ============================================================================
+
 !.gitignore
 *.gem
 *.rbc
@@ -42,3 +57,4 @@ tmtags
 tramp
 .rbx
 b/
+
