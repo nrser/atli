@@ -29,4 +29,20 @@ class Thor
 
   class MalformattedArgumentError < InvocationError
   end
+  
+  # Raised when a combination of conflicting arguments is provided.
+  # 
+  # @todo
+  #   It would be nice to parametrize this.
+  # 
+  class ConflictingArgumentError < InvocationError
+  end
+  
+  # Raised when an argument is not allowed.
+  # 
+  # @todo
+  #   It would be nice to parametrize this.
+  # 
+  class ProhibitedArgumentError < InvocationError
+  end
 end
