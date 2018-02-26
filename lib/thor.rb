@@ -6,8 +6,6 @@ require "thor/base"
 using NRSER
 
 class Thor
-  # Atli - add {.logger} and {#logger} methods
-  include SemanticLogger::Loggable
   
   class << self
     # Allows for custom "Command" package naming.

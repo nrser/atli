@@ -188,6 +188,11 @@ class Thor
       base.extend ClassMethods
       base.send :include, Invocation
       base.send :include, Shell
+      
+      base.no_commands {
+        include SemanticLogger::Loggable
+      }
+      
     end
 
     # Returns the classes that inherits from Thor or Thor::Group.

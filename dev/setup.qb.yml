@@ -1,0 +1,52 @@
+#!/usr/bin/env qb setup
+---
+- name: >-
+    Setup development environment for nrser/atli project
+
+  hosts: localhost
+  
+  pre_tasks:
+  # ============================================================================
+  # 
+  # Any one-off tasks the need to run *before* the roles.
+  # 
+    
+  # /pre_tasks
+
+  roles:
+  # ============================================================================
+  # 
+  # The bulk of setup work is done by invoking role from QB. Roles specific to
+  # dev setup are grouped in the `qb/dev` namespace.
+  # 
+  
+  # References
+  # ----------------------------------------------------------------------------
+  # 
+  # Material available online that is useful to have locally for browsing and
+  # search (mostly source code from other projects or other versions of this
+  # project).
+  # 
+  
+  ### Git repos
+  # 
+  # Unless specified, assumed to be from GitHub.
+  # 
+  # Example:
+  # 
+  #     - role: qb/dev/ref/repo/git
+  #       full_name: ansible/ansible
+  #       version: v2.4.1.0-1
+  # 
+  
+  # /roles
+  
+  tasks:
+  # ============================================================================
+  # 
+  # Any one-off tasks that can run after the roles.
+  # 
+  
+  # /tasks
+
+# / play

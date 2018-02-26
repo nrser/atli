@@ -6,16 +6,50 @@
 
 # ansible retry files
 .qb-playbook.retry
-
-# error logs
-ansible-error.log
-
 #
 # END QB.gitingore
 ##############################################################################
 
-# Stuff that came from Thor
+##############################################################################
+# BEGIN Global/macOS.gitingore
+#
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+#
+# END Global/macOS.gitingore
+##############################################################################
+
+
+# Project
 # ============================================================================
+
+# Stuff that came from Thor
+# ----------------------------------------------------------------------------
 
 !.gitignore
 *.gem
@@ -46,28 +80,30 @@ Session.vim
 \#*\#
 _yardoc
 auto-save-list
-coverage
+/coverage
 /doc/
 lib/bundler/man
-pkg
-pkg/*
-rdoc
-spec/reports
-spec/sandbox
-test/tmp
-test/version_tmp
-tmp
-tmtags
-tramp
+/pkg
+/pkg/*
+/rdoc
+/spec/reports
+/spec/sandbox
+/test/tmp
+/test/version_tmp
+/tmp
+/tmtags
+/tramp
 .rbx
 b/
 
 
 # Atli Additions & Overrides
-# ============================================================================
+# ----------------------------------------------------------------------------
 
 # We puts other markdown sources under `//doc` and build docs to `//doc/site`
 # (using yard, see `//.yardopts`)
 !/doc/
 /doc/site/
 
+# nrser.rb role's vars.rb module error logs
+ansible-error.lo
