@@ -406,7 +406,7 @@ class Thor
     
     # Find shared options given names and groups.
     # 
-    # @param [*<Symbol>] *names
+    # @param [*<Symbol>] names
     #   Individual shared option names to include.
     # 
     # @param [nil | Symbol | Enumerable<Symbol>] groups:
