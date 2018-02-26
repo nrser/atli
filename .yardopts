@@ -1,7 +1,6 @@
 --protected
+--output-dir doc/site
 --markup rdoc
-lib/*.rb
-lib/**/*.rb
 -
 LICENSE.md
 README.md

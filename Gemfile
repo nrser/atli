@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 gem "rake", "< 11"
-gem "rdoc", "~> 4.2.2" # This is to support Ruby 1.8 and 1.9
+# gem "rdoc", "~> 4.2.2" # This is to support Ruby 1.8 and 1.9
 
 group :development do
   gem "pry"
@@ -12,9 +12,6 @@ group :development do
     gem "pry-debugger"
     gem "pry-stack_explorer"
   end
-  
-  # Yard for service docs locally
-  gem 'yard', '~> 0.9.12'
 end
 
 group :test do
