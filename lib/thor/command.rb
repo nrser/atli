@@ -57,7 +57,15 @@ class Thor
         raise e
       end
     rescue Exception => error
-      instance.send :on_run_error, error, self, args
+      # NOTE  Need to use `#__send__` because the instance may define a
+      #       command (method) `#send` - and one of the test fixtures **does**:
+      #       
+      #       //spec/fixtures/script.thor:100
+      #       
+      #       That's why the Thor code above uses `#__send__`, and we need to
+      #       too.
+      #       
+      instance.__send__ :on_run_error, error, self, args
       
       # We should not get here!!!
       # {Thor::Base#on_run_error} should exit or re-raise :(

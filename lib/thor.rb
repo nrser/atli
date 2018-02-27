@@ -543,229 +543,230 @@ class Thor
     
     # END Atli Public Class Methods ******************************************
     
+    
+    protected # Class Methods
+    # ============================================================================
 
-  protected
-
-    def stop_on_unknown_option #:nodoc:
-      @stop_on_unknown_option ||= Set.new
-    end
-
-    # help command has the required check disabled by default.
-    def disable_required_check #:nodoc:
-      @disable_required_check ||= Set.new([:help])
-    end
-
-    # The method responsible for dispatching given the args.
-    def dispatch(meth, given_args, given_opts, config) #:nodoc: # rubocop:disable MethodLength
-      meth ||= retrieve_command_name(given_args)
-      command = all_commands[normalize_command_name(meth)]
-
-      if !command && config[:invoked_via_subcommand]
-        # We're a subcommand and our first argument didn't match any of our
-        # commands. So we put it back and call our default command.
-        given_args.unshift(meth)
-        command = all_commands[normalize_command_name(default_command)]
+      def stop_on_unknown_option #:nodoc:
+        @stop_on_unknown_option ||= Set.new
       end
 
-      if command
-        args, opts = Thor::Options.split(given_args)
-        if stop_on_unknown_option?(command) && !args.empty?
-          # given_args starts with a non-option, so we treat everything as
-          # ordinary arguments
-          args.concat opts
-          opts.clear
+      # help command has the required check disabled by default.
+      def disable_required_check #:nodoc:
+        @disable_required_check ||= Set.new([:help])
+      end
+
+      # The method responsible for dispatching given the args.
+      def dispatch(meth, given_args, given_opts, config) #:nodoc: # rubocop:disable MethodLength
+        meth ||= retrieve_command_name(given_args)
+        command = all_commands[normalize_command_name(meth)]
+
+        if !command && config[:invoked_via_subcommand]
+          # We're a subcommand and our first argument didn't match any of our
+          # commands. So we put it back and call our default command.
+          given_args.unshift(meth)
+          command = all_commands[normalize_command_name(default_command)]
         end
-      else
-        args = given_args
-        opts = nil
-        command = dynamic_command_class.new(meth)
-      end
 
-      opts = given_opts || opts || []
-      config[:current_command] = command
-      config[:command_options] = command.options
-
-      instance = new(args, opts, config)
-      yield instance if block_given?
-      args = instance.args
-      trailing = args[Range.new(arguments.size, -1)]
-      instance.invoke_command(command, trailing || [])
-    end
-    
-    
-    # The banner for this class. You can customize it if you are invoking the
-    # thor class by another ways which is not the Thor::Runner. It receives
-    # the command that is going to be invoked and a boolean which indicates if
-    # the namespace should be displayed as arguments.
-    # 
-    # @param [Thor::Command] command
-    #   The command to render the banner for.
-    # 
-    # @param [nil | ?] namespace
-    #   *Atli*: this argument is _not_ _used_ _at_ _all_. I don't know what it
-    #   could or should be, but it doesn't seem like it matters at all :/
-    #  
-    # @param [Boolean] subcommand
-    #   Should be +true+ if the command was invoked as a sub-command; passed
-    #   on to {Command#formatted_usage} so it can render correctly.
-    # 
-    # @return [String]
-    #   The banner for the command.
-    # 
-    def banner(command, namespace = nil, subcommand = false)
-      "#{basename} #{command.formatted_usage(self, $thor_runner, subcommand)}"
-    end
-    
-    
-    def baseclass #:nodoc:
-      Thor
-    end
-
-    def dynamic_command_class #:nodoc:
-      Thor::DynamicCommand
-    end
-
-    def create_command(meth) #:nodoc:
-      @usage ||= nil
-      @desc ||= nil
-      @long_desc ||= nil
-      @hide ||= nil
-
-      if @usage && @desc
-        base_class = @hide ? Thor::HiddenCommand : Thor::Command
-        commands[meth] = base_class.new(
-          meth,
-          @desc,
-          @long_desc,
-          @usage,
-          method_options
-        )
-        @usage, @desc, @long_desc, @method_options, @hide = nil
-        true
-      elsif all_commands[meth] || meth == "method_missing"
-        true
-      else
-        puts "[WARNING] Attempted to create command #{meth.inspect} without usage or description. " \
-             "Call desc if you want this method to be available as command or declare it inside a " \
-             "no_commands{} block. Invoked from #{caller[1].inspect}."
-        false
-      end
-    end
-    alias_method :create_task, :create_command
-
-    def initialize_added #:nodoc:
-      class_options.merge!(method_options)
-      @method_options = nil
-    end
-
-    # Retrieve the command name from given args.
-    def retrieve_command_name(args) #:nodoc:
-      meth = args.first.to_s unless args.empty?
-      args.shift if meth && (map[meth] || meth !~ /^\-/)
-    end
-    alias_method :retrieve_task_name, :retrieve_command_name
-
-    # receives a (possibly nil) command name and returns a name that is in
-    # the commands hash. In addition to normalizing aliases, this logic
-    # will determine if a shortened command is an unambiguous substring of
-    # a command or alias.
-    #
-    # +normalize_command_name+ also converts names like +animal-prison+
-    # into +animal_prison+.
-    def normalize_command_name(meth) #:nodoc:
-      return default_command.to_s.tr("-", "_") unless meth
-
-      possibilities = find_command_possibilities(meth)
-      
-      if possibilities.size > 1
-        raise AmbiguousTaskError,
-          "Ambiguous command #{meth} matches [#{possibilities.join(', ')}]"
-      end
-
-      if possibilities.empty?
-        meth ||= default_command
-      elsif map[meth]
-        meth = map[meth]
-      else
-        meth = possibilities.first
-      end
-
-      meth.to_s.tr("-", "_") # treat foo-bar as foo_bar
-    end
-    alias_method :normalize_task_name, :normalize_command_name
-
-    # this is the logic that takes the command name passed in by the user
-    # and determines whether it is an unambiguous substrings of a command or
-    # alias name.
-    def find_command_possibilities(meth)
-      len = meth.to_s.length
-      possibilities = all_commands.merge(map).keys.select { |n|
-        meth == n[0, len]
-      }.sort
-      unique_possibilities = possibilities.map { |k| map[k] || k }.uniq
-
-      if possibilities.include?(meth)
-        [meth]
-      elsif unique_possibilities.size == 1
-        unique_possibilities
-      else
-        possibilities
-      end
-    end
-    alias_method :find_task_possibilities, :find_command_possibilities
-
-    def subcommand_help(cmd)
-      logger.trace __method__.to_s,
-        cmd: cmd,
-        caller: caller
-      
-      desc "help [COMMAND]", "Describe subcommands or one specific subcommand"
-      
-      # Atli -  This used to be {#class_eval} (maybe to support really old
-      #         Rubies? Who knows...) but that made it really hard to find in
-      #         stack traces, so I switched it to {#define_method}.
-      # 
-      define_method :help do |*args|
-        
-        # Add the `is_subcommand = true` trailing arg
-        case args[-1]
-        when true
-          # pass
-        when false
-          # Weird, `false` was explicitly passed... whatever, set it to `true`
-          args[-1] = true
+        if command
+          args, opts = Thor::Options.split(given_args)
+          if stop_on_unknown_option?(command) && !args.empty?
+            # given_args starts with a non-option, so we treat everything as
+            # ordinary arguments
+            args.concat opts
+            opts.clear
+          end
         else
-          # "Normal" case, append it
-          args << true
+          args = given_args
+          opts = nil
+          command = dynamic_command_class.new(meth)
         end
-        
-        super *args
+
+        opts = given_opts || opts || []
+        config[:current_command] = command
+        config[:command_options] = command.options
+
+        instance = new(args, opts, config)
+        yield instance if block_given?
+        args = instance.args
+        trailing = args[Range.new(arguments.size, -1)]
+        instance.invoke_command(command, trailing || [])
       end
       
-    end
-    alias_method :subtask_help, :subcommand_help
+      
+      # The banner for this class. You can customize it if you are invoking the
+      # thor class by another ways which is not the Thor::Runner. It receives
+      # the command that is going to be invoked and a boolean which indicates if
+      # the namespace should be displayed as arguments.
+      # 
+      # @param [Thor::Command] command
+      #   The command to render the banner for.
+      # 
+      # @param [nil | ?] namespace
+      #   *Atli*: this argument is _not_ _used_ _at_ _all_. I don't know what it
+      #   could or should be, but it doesn't seem like it matters at all :/
+      #  
+      # @param [Boolean] subcommand
+      #   Should be +true+ if the command was invoked as a sub-command; passed
+      #   on to {Command#formatted_usage} so it can render correctly.
+      # 
+      # @return [String]
+      #   The banner for the command.
+      # 
+      def banner(command, namespace = nil, subcommand = false)
+        "#{basename} #{command.formatted_usage(self, $thor_runner, subcommand)}"
+      end
+      
+      
+      def baseclass #:nodoc:
+        Thor
+      end
+
+      def dynamic_command_class #:nodoc:
+        Thor::DynamicCommand
+      end
+
+      def create_command(meth) #:nodoc:
+        @usage ||= nil
+        @desc ||= nil
+        @long_desc ||= nil
+        @hide ||= nil
+
+        if @usage && @desc
+          base_class = @hide ? Thor::HiddenCommand : Thor::Command
+          commands[meth] = base_class.new(
+            meth,
+            @desc,
+            @long_desc,
+            @usage,
+            method_options
+          )
+          @usage, @desc, @long_desc, @method_options, @hide = nil
+          true
+        elsif all_commands[meth] || meth == "method_missing"
+          true
+        else
+          puts "[WARNING] Attempted to create command #{meth.inspect} without usage or description. " \
+               "Call desc if you want this method to be available as command or declare it inside a " \
+               "no_commands{} block. Invoked from #{caller[1].inspect}."
+          false
+        end
+      end
+      alias_method :create_task, :create_command
+
+      def initialize_added #:nodoc:
+        class_options.merge!(method_options)
+        @method_options = nil
+      end
+
+      # Retrieve the command name from given args.
+      def retrieve_command_name(args) #:nodoc:
+        meth = args.first.to_s unless args.empty?
+        args.shift if meth && (map[meth] || meth !~ /^\-/)
+      end
+      alias_method :retrieve_task_name, :retrieve_command_name
+
+      # receives a (possibly nil) command name and returns a name that is in
+      # the commands hash. In addition to normalizing aliases, this logic
+      # will determine if a shortened command is an unambiguous substring of
+      # a command or alias.
+      #
+      # +normalize_command_name+ also converts names like +animal-prison+
+      # into +animal_prison+.
+      def normalize_command_name(meth) #:nodoc:
+        return default_command.to_s.tr("-", "_") unless meth
+
+        possibilities = find_command_possibilities(meth)
+        
+        if possibilities.size > 1
+          raise AmbiguousTaskError,
+            "Ambiguous command #{meth} matches [#{possibilities.join(', ')}]"
+        end
+
+        if possibilities.empty?
+          meth ||= default_command
+        elsif map[meth]
+          meth = map[meth]
+        else
+          meth = possibilities.first
+        end
+
+        meth.to_s.tr("-", "_") # treat foo-bar as foo_bar
+      end
+      alias_method :normalize_task_name, :normalize_command_name
+
+      # this is the logic that takes the command name passed in by the user
+      # and determines whether it is an unambiguous substrings of a command or
+      # alias name.
+      def find_command_possibilities(meth)
+        len = meth.to_s.length
+        possibilities = all_commands.merge(map).keys.select { |n|
+          meth == n[0, len]
+        }.sort
+        unique_possibilities = possibilities.map { |k| map[k] || k }.uniq
+
+        if possibilities.include?(meth)
+          [meth]
+        elsif unique_possibilities.size == 1
+          unique_possibilities
+        else
+          possibilities
+        end
+      end
+      alias_method :find_task_possibilities, :find_command_possibilities
+
+      def subcommand_help(cmd)
+        logger.trace __method__.to_s,
+          cmd: cmd,
+          caller: caller
+        
+        desc "help [COMMAND]", "Describe subcommands or one specific subcommand"
+        
+        # Atli -  This used to be {#class_eval} (maybe to support really old
+        #         Rubies? Who knows...) but that made it really hard to find in
+        #         stack traces, so I switched it to {#define_method}.
+        # 
+        define_method :help do |*args|
+          
+          # Add the `is_subcommand = true` trailing arg
+          case args[-1]
+          when true
+            # pass
+          when false
+            # Weird, `false` was explicitly passed... whatever, set it to `true`
+            args[-1] = true
+          else
+            # "Normal" case, append it
+            args << true
+          end
+          
+          super( *args )
+        end
+        
+      end
+      alias_method :subtask_help, :subcommand_help
+      
+      # Atli Protected Class Methods
+      # ======================================================================
+      
+      # Build a Thor::SharedOption and add it to Thor.shared_method_options.
+      # 
+      # The Thor::SharedOption is returned.
+      #
+      # ==== Parameters
+      # name<Symbol>:: The name of the argument.
+      # options<Hash>::   Described in both class_option and method_option,
+      #                   with the additional `:groups` shared option keyword.
+      def build_shared_option(name, options)
+        shared_method_options[name] = Thor::SharedOption.new(
+          name,
+          options.merge(:check_default_type => check_default_type?)
+        )
+      end # #build_shared_option
     
-    # Atli Protected Class Methods
-    # ========================================================================
-    
-    # Build a Thor::SharedOption and add it to Thor.shared_method_options.
-    # 
-    # The Thor::SharedOption is returned.
-    #
-    # ==== Parameters
-    # name<Symbol>:: The name of the argument.
-    # options<Hash>::   Described in both class_option and method_option,
-    #                   with the additional `:groups` shared option keyword.
-    def build_shared_option(name, options)
-      shared_method_options[name] = Thor::SharedOption.new(
-        name,
-        options.merge(:check_default_type => check_default_type?)
-      )
-    end # #build_shared_option
+    # END protected Class Methods ********************************************
   
-  # END protected Class Methods **********************************************
-  
-  end # class << self
+  end # class << self ********************************************************
   
   
   protected # Instance Methods
@@ -794,8 +795,7 @@ class Thor
       options.slice( *name_set ).sym_keys
     end
     
-  # END protected Instance Methods *******************************************
-  public
+  public # END protected Instance Methods ************************************
   
   
   # After this, {.method_added} hook is installed and defined methods become
@@ -804,7 +804,7 @@ class Thor
   
   
   # Commands
-  # ============================================================================
+  # ==========================================================================
 
   map HELP_MAPPINGS => :help
 

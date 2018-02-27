@@ -190,7 +190,7 @@ class Thor
       base.send :include, Shell
       
       base.no_commands {
-        include SemanticLogger::Loggable
+        base.send :include, SemanticLogger::Loggable
       }
       
     end
@@ -585,11 +585,11 @@ class Thor
         config[:shell] ||= Thor::Base.shell.new
         dispatch(nil, given_args.dup, nil, config)
       rescue Thor::Error => e
-        config[:debug] || (
-          ENV["THOR_DEBUG"] == "1" ?
-            (raise e) :
-            config[:shell].error(e.message)
-        )
+        if config[:debug] || ENV["THOR_DEBUG"] == "1"
+          raise e
+        else
+          config[:shell].error(e.message)
+        end
         exit(1) if exit_on_failure?
       rescue Errno::EPIPE
         # This happens if a thor command is piped to something like `head`,
@@ -702,7 +702,7 @@ class Thor
         # Raises an error if the word given is a Thor reserved word.
         def is_thor_reserved_word?(word, type) #:nodoc:
           return false unless THOR_RESERVED_WORDS.include?(word.to_s)
-          raise "#{word.inspect} is a Thor reserved word and cannot be  " \
+          raise "#{word.inspect} is a Thor reserved word and cannot be " \
                 "defined as #{type}"
         end
 

@@ -1,4 +1,13 @@
+require 'pathname'
+
 class Thor
+  # Absolute, expanded path to the gem's root directory.
+  # 
+  # @return [Pathname]
+  # 
+  ROOT = Pathname.new( __dir__ ).join( '..', '..' ).expand_path
+  
+  
   # Gem version string.
   # 
   # See {file:doc/files/notes/versioning.md} for details.

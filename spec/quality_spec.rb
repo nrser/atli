@@ -21,7 +21,11 @@ describe "The library itself" do
   def check_for_extra_spaces(filename)
     failing_lines = []
     File.readlines(filename).each_with_index do |line, number|
-      next if line =~ /^\s+#.*\s+\n$/
+      # ATLI Style - Allow all whitespace lines and ignore comment lines even
+      # if the comment `#` is not proceeded by whitespace (not sure exactly
+      # what that exception was meant to address)
+      # 
+      next if line =~ /^\s*#.*\s+\n$/ || line =~ /^\s*\n$/
       failing_lines << number + 1 if line =~ /\s+\n$/
     end
 
