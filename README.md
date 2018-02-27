@@ -1,5 +1,11 @@
 Atli
-====
+==============================================================================
+
+[![Gem Version](http://img.shields.io/gem/v/atli.svg)][gem]
+[![Build Status](http://img.shields.io/travis/nrser/atli.svg)][travis]
+
+[gem]: https://rubygems.org/gems/atli
+[travis]: http://travis-ci.org/nrser/atli
 
 Description
 -----------
