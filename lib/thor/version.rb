@@ -14,7 +14,7 @@ class Thor
   # 
   # @return [String]
   # 
-  VERSION = '0.1.4.dev'
+  VERSION = '0.1.4'
   
   
   # The version of Thor that Atli is up to date with.
@@ -27,5 +27,5 @@ class Thor
   # 
   # @return [String]
   # 
-  THOR_VERSION = '0.1.4.dev'
+  THOR_VERSION = '0.1.4'
 end
