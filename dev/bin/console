@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+
+# Load `nrser` gem and use refinements if it's available
+begin
+  require 'nrser'
+rescue LoadError => error
+  puts "WARN -- Failed to load `nrser` gem."
+  puts "WARN -- Add it do your dependencies or edit #{ __FILE__ }"
+else
+  using NRSER
+  using NRSER::Types
+end
+
+require 'thor'
+
+# You can add fixtures and/or initialization code here to make experimenting
+# with your gem easier. You can also use a different console, if you like.
+
+# Load `pry` if it's available, falling back to `irb`
+begin
+  require "pry"
+rescue LoadError => error
+  puts "WARN -- Failed to load `pry` gem."
+  puts "WARN -- Add it do your dependencies or edit #{ __FILE__ }"
+  puts "INFO -- Starting `IRB`..."
+  
+  require "irb"
+  IRB.start
+else
+  Pry.start
+end
