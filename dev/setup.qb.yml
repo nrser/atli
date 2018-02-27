@@ -38,6 +38,9 @@
   #       full_name: ansible/ansible
   #       version: v2.4.1.0-1
   # 
+  - role: qb/dev/ref/repo/git
+    full_name: erikhuda/thor
+    version: v0.20.0
   
   # /roles
   
