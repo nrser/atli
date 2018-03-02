@@ -4,9 +4,11 @@ before_install:
 bundler_args: --without development
 language: ruby
 rvm:
-  # Alti only supports Ruby >= 2.3
-  - 2.3.5
-  - 2.4.2
+  # Test 2.3.0 itself since that's our min version
+  - 2.3.0
+  # Then test the latest patches for each minor after that
+  - 2.3.6
+  - 2.4.3
   - 2.5.0
   - ruby-head
 matrix:
