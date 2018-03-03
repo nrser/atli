@@ -139,36 +139,57 @@ describe Thor::Options do
       expect(parse("--foo_bar", "baz")["foo_bar"]).to eq("baz")
       expect(parse("--baz_foo", "foo bar")["baz_foo"]).to eq("foo bar")
     end
+    
+    describe "`--` separator" do
+      it "interprets everything after `--` as args instead of options" do
+        create(:foo => :string, :bar => :required)
+        expect(parse(%w(--bar abc moo -- --foo def -a))).to eq("bar" => "abc")
+        expect(remaining).to eq(%w(moo -- --foo def -a))
+      end
+      
+      # This used to say
+      # 
+      #     "ignores -- when looking for single option values"
+      # 
+      # but here at Atli we don't do that shit. `--` means no more parsing
+      # options. I have no idea why someone would want
+      # 
+      #     --bar -- --foo def -a
+      # 
+      # to mean `bar: '--foo'`. That makes zero sense to me. I can't really
+      # come up with any reason someone would expect that. But it seems like
+      # it was done totally intentionally:
+      # 
+      #     https://github.com/erikhuda/thor/commit/cc52770822f2481c6f4254ecfd7470df7836f8d5
+      # 
+      # ?????
+      # 
+      it "errors when hits `--` looking for single options values" do
+        create(:foo => :string, :bar => :required)
+        expect{ parse(%w(--bar -- --foo def -a)) }.
+          to raise_error Thor::MalformattedArgumentError,
+            /No value provided for option \'\-\-bar\'/
+      end
+      
+      # Same sort of deal as above... we STOP when we hit `--`!
+      it "stops at `--` when parsing array" do
+        create(:foo => :array)
+        expect(parse(%w(--foo a b -- c d -e))).to eq("foo" => %w(a b))
+        expect(remaining).to eq(%w(-- c d -e))
+      end
 
-    it "interprets everything after -- as args instead of options" do
-      create(:foo => :string, :bar => :required)
-      expect(parse(%w(--bar abc moo -- --foo def -a))).to eq("bar" => "abc")
-      expect(remaining).to eq(%w(moo --foo def -a))
-    end
-
-    it "ignores -- when looking for single option values" do
-      create(:foo => :string, :bar => :required)
-      expect(parse(%w(--bar -- --foo def -a))).to eq("bar" => "--foo")
-      expect(remaining).to eq(%w(def -a))
-    end
-
-    it "ignores -- when looking for array option values" do
-      create(:foo => :array)
-      expect(parse(%w(--foo a b -- c d -e))).to eq("foo" => %w(a b c d -e))
-      expect(remaining).to eq([])
-    end
-
-    it "ignores -- when looking for hash option values" do
-      create(:foo => :hash)
-      expect(parse(%w(--foo a:b -- c:d -e))).to eq("foo" => {"a" => "b", "c" => "d"})
-      expect(remaining).to eq(%w(-e))
-    end
-
-    it "ignores trailing --" do
-      create(:foo => :string)
-      expect(parse(%w(--foo --))).to eq("foo" => nil)
-      expect(remaining).to eq([])
-    end
+      it "stop at `--` when looking for hash option values" do
+        create(:foo => :hash)
+        expect(parse(%w(--foo a:b -- c:d -e))).to eq("foo" => {"a" => "b"})
+        expect(remaining).to eq(%w(-- c:d -e))
+      end
+      
+      it "ignores trailing --" do
+        create(:foo => :string)
+        expect(parse(%w(--foo --))).to eq("foo" => 'foo')
+        expect(remaining).to eq(['--'])
+      end
+    end # describe -- separator
 
     describe "with no input" do
       it "and no switches returns an empty hash" do
@@ -183,7 +204,11 @@ describe Thor::Options do
 
       it "and a required switch raises an error" do
         create "--foo" => :required
-        expect { parse }.to raise_error(Thor::RequiredArgumentMissingError, "No value provided for required options '--foo'")
+        expect { parse }.
+          to raise_error(
+            Thor::RequiredArgumentMissingError,
+            "No value provided for required options '--foo'"
+          )
       end
     end
 
@@ -193,15 +218,18 @@ describe Thor::Options do
       end
 
       it "raises an error if the required switch has no argument" do
-        expect { parse("--foo") }.to raise_error(Thor::MalformattedArgumentError)
+        expect { parse("--foo") }.
+          to raise_error(Thor::MalformattedArgumentError)
       end
 
       it "raises an error if the required switch isn't given" do
-        expect { parse("--bar") }.to raise_error(Thor::RequiredArgumentMissingError)
+        expect { parse("--bar") }.
+          to raise_error(Thor::RequiredArgumentMissingError)
       end
 
       it "raises an error if the required switch is set to nil" do
-        expect { parse("--no-foo") }.to raise_error(Thor::RequiredArgumentMissingError)
+        expect { parse("--no-foo") }.
+          to raise_error(Thor::RequiredArgumentMissingError)
       end
 
       it "does not raises an error if the required option has a default value" do
@@ -243,7 +271,7 @@ describe Thor::Options do
 
       it "still interprets everything after -- as args instead of options" do
         expect(parse(%w(-- --verbose))).to eq({})
-        expect(remaining).to eq(%w(--verbose))
+        expect(remaining).to eq(%w(-- --verbose))
       end
     end
 
@@ -407,25 +435,46 @@ describe Thor::Options do
       before do
         create "n" => :numeric, "m" => 5
       end
-
-      it "accepts a -nXY assignment" do
-        expect(parse("-n12")["n"]).to eq(12)
-      end
+      
+      describe "SHORT_NUM assignment" do
+        it "accepts a -nXY assignment" do
+          expect(parse("-n12")["n"]).to eq(12)
+        end
+        
+        # TODO  I don't really understand these ones... they seem like they're
+        #       there for positive and negative numbers, but they both parse
+        #       to positives?
+        describe "+ and - prefixes" do
+          it "accepts a -n-DD assignment" do
+            expect(parse("-n-12")["n"]).to eq(12)
+          end
+          
+          it "accepts a -n+DD assignment" do
+            expect(parse("-n+12")["n"]).to eq(12)
+          end
+        end # describe "+ and - prefixes"
+      end # describe "SHORT_NUM assignment"
 
       it "converts values to numeric types" do
         expect(parse("-n", "3", "-m", ".5")).to eq("n" => 3, "m" => 0.5)
       end
 
       it "raises error when value isn't numeric" do
-        expect { parse("-n", "foo") }.to raise_error(Thor::MalformattedArgumentError,
-                                                     "Expected numeric value for '-n'; got \"foo\"")
+        expect { parse("-n", "foo") }.
+          to raise_error(
+              Thor::MalformattedArgumentError,
+              "Expected numeric value for '-n'; got \"foo\""
+            )
       end
 
       it "raises error when value isn't in enum" do
         enum = [1, 2]
         create :limit => Thor::Option.new("limit", :type => :numeric, :enum => enum)
-        expect { parse("--limit", "3") }.to raise_error(Thor::MalformattedArgumentError,
-                                                        "Expected '--limit' to be one of #{enum.join(', ')}; got 3")
+        expect { parse("--limit", "3") }.
+          to raise_error(
+              Thor::MalformattedArgumentError,
+              "Expected '--limit' to be one of #{enum.join(', ')}; got 3"
+            )
       end
     end
   end

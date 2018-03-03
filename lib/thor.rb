@@ -246,16 +246,36 @@ class Thor
       end.compact
     end
     alias_method :printable_tasks, :printable_commands
-
+    
+    
+    # List of subcommand names, including those inherited from super
+    # classes.
+    # 
+    # @return [Array<String>]
+    # 
     def subcommands
       @subcommands ||= from_superclass(:subcommands, [])
     end
     alias_method :subtasks, :subcommands
-
+    
+    
+    # Map of subcommand names to Thor classes for *this* Thor class only.
+    # 
+    # @note
+    #   `.subcommands` is not necessarily equal to `.subcommand_classes.keys`
+    #   - it won't be when there are subcommands inherited from super classes.
+    # 
+    # @note
+    #   I'm not really sure how this relates to {Thor::Group}... and I'm not
+    #   going to take the time to find out now.
+    # 
+    # @return [Hash<String, Class<Thor::Base>]
+    #   
     def subcommand_classes
       @subcommand_classes ||= {}
     end
-
+    
+    
     def subcommand(subcommand, subcommand_class)
       subcommands << subcommand.to_s
       subcommand_class.subcommand_help subcommand

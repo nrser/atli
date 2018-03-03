@@ -23,39 +23,102 @@ class Thor
     def hidden?
       false
     end
-
+    
+    
+    # Run a command by calling the actual method on the {Thor::Base} instance.
+    # 
     # By default, a command invokes a method in the thor class. You can change
     # this implementation to create custom commands.
-    def run(instance, args = [])
-      logger.trace "Command#run",
-        self: self,
-        instance: instance,
+    # 
+    # @param [Thor::Base] instance
+    #   Thor class instance the command is being run for.
+    # 
+    # @param [Array<?>] args
+    #   Arguments for the command.
+    # 
+    # @return
+    #   The return value of the command method on `instance`.
+    # 
+    # @raise [Thor::InvocationError]
+    #   1.  When we find a suitable method on `instance` to call, but it
+    #       raised and {ArgumentError} **and** {#handle_argument_error?}
+    #       returned `true`.
+    # 
+    def run instance, args = []
+      logger.debug "Command#run",
+        name: self.name,
         args: args
       
+      # raise "BAD!!!" unless args.include? '--'
+      
+      # Declaration for arity of the method, which is set in (2) below and
+      # used when handling raised {ArgumentError}
       arity = nil
-
-      if private_method?(instance)
-        instance.class.handle_no_command_error(name)
-      elsif public_method?(instance)
-        arity = instance.method(name).arity
-        instance.__send__(name, *args)
-      elsif local_method?(instance, :method_missing)
-        instance.__send__(:method_missing, name.to_sym, *args)
+      
+      # Method invocation switch - figure out how to make the method call to
+      # `instance`, or error out.
+      # 
+      # Cases:
+      # 
+      # 1.  Protect from calling private methods by error'ing out if {#name}
+      #     is the name of a private method of `instance`.
+      #     
+      if private_method? instance
+        instance.class.handle_no_command_error name
+      
+      # 2.  The success case - if {#name} is a public method of `instance`
+      #     than call it with `args`.
+      #     
+      elsif public_method? instance
+        # Save the arity to use when handling {ArgumentError} below
+        # 
+        # TODO  Why does it fetch the {Method} *then* use {#__send__} instead
+        #       of just `#call` it?
+        #       
+        arity = instance.method( name ).arity
+        
+        # Unless the method is a subcommand, remove any '--' separators
+        # since we know we're done option parsin'
+        unless subcommand? instance, name
+          args = args.reject { |arg| arg == '--' }
+        end
+        
+        # Do that call
+        instance.__send__ name, *args
+      
+      # 3.  If the {Thor} instance has a `#method_missing` defined in *itself*
+      #     (not any super class) than call that.
+      #     
+      elsif local_method? instance, :method_missing
+        instance.__send__ :method_missing, name.to_sym, *args
+      
+      # 4.  We got nothing... pass of to
+      #     {Thor::Base::ClassMethods.handle_no_command_error}
+      #     which will raise.
+      #     
       else
-        instance.class.handle_no_command_error(name)
-      end
-    rescue ArgumentError => e
-      if handle_argument_error?(instance, e, caller)
-        instance.class.handle_argument_error(self, e, args, arity)
+        instance.class.handle_no_command_error name
+      
+      end # Method invocation switch
+      
+    rescue ArgumentError => error
+      if handle_argument_error? instance, error, caller
+        # NOTE  I *believe* `arity` could still be `nil`, assuming that
+        #       (3) could raise {ArgumentError} and end up here.
+        #       
+        #       However...
+        instance.class.handle_argument_error self, error, args, arity
       else
-        raise e
+        raise error
       end
-    rescue NoMethodError => e
-      if handle_no_method_error?(instance, e, caller)
-        instance.class.handle_no_command_error(name)
+    
+    rescue NoMethodError => error
+      if handle_no_method_error? instance, error, caller
+        instance.class.handle_no_command_error name
       else
-        raise e
+        raise error
       end
+    
     rescue Exception => error
       # NOTE  Need to use `#__send__` because the instance may define a
       #       command (method) `#send` - and one of the test fixtures **does**:
@@ -73,7 +136,8 @@ class Thor
       
       # If you want something done right...
       raise error
-    end
+    end # #run
+    
 
     # Returns the formatted usage by injecting given required arguments
     # and required options into the given usage.
@@ -125,22 +189,76 @@ class Thor
         sort.
         join(" ")
     end
-
-    # Given a target, checks if this class name is a public method.
+    
+    
+    
+    # Is `name` a subcommand of `instance`?
+    # 
+    # @param [Thor::Base] instance
+    #   The Thor instance this command is being run for.
+    # 
+    # @param [Symbol | String] name
+    #   The subcommand / method name.
+    # 
+    # @return [return_type]
+    #   @todo Document return value.
+    # 
+    def subcommand? instance, name
+      # It doesn't look like {Thor::Group} has `.subcommands`, so test for
+      # that first.
+      return false unless instance.class.respond_to?( :subcommands )
+      
+      # See if the names is in the subcommands
+      instance.class.subcommands.include? name.to_s
+    end # #subcommand?
+    
+    
+    
+    # Is this command's {#name} a public method of `instance`?
+    # 
+    # @param [Thor::Base] instance
+    #   The Thor instance this command is being run for.
+    # 
+    # @return [Boolean]
+    #   `true` if {#name} is a public method of `instance`.
+    # 
     def public_method?(instance) #:nodoc:
       !(instance.public_methods & [name.to_s, name.to_sym]).empty?
     end
-
+    
+    
+    # Is this command's {#name} a private method of `instance`?
+    # 
+    # @param [Thor::Base] instance
+    #   The Thor instance this command is being run for.
+    # 
+    # @return [Boolean]
+    #   `true` if {#name} is a private method of `instance`.
+    # 
     def private_method?(instance)
       !(instance.private_methods & [name.to_s, name.to_sym]).empty?
     end
-
+    
+    
+    # Is `name` the name of a method defined in `instance` itself (not
+    # any super class)?
+    # 
+    # @param [Thor::Base] instance
+    #   The Thor instance this command is being run for.
+    # 
+    # @param [Symbol | String] name
+    #   The method name.
+    # 
+    # @return [Boolean]
+    #   `true` if `name` is the name of a method defined in `instance` itself.
+    # 
     def local_method?(instance, name)
       methods = instance.public_methods(false) +
                 instance.private_methods(false) +
                 instance.protected_methods(false)
       !(methods & [name.to_s, name.to_sym]).empty?
     end
+    
 
     def sans_backtrace(backtrace, caller) #:nodoc:
       saned = backtrace.reject { |frame|

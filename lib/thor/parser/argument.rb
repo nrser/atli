@@ -44,8 +44,15 @@ class Thor
   protected
 
     def validate!
-      raise ArgumentError, "An argument cannot be required and have default value." if required? && !default.nil?
-      raise ArgumentError, "An argument cannot have an enum other than an array." if @enum && !@enum.is_a?(Array)
+      if required? && !default.nil?
+        raise ArgumentError,
+          "An argument cannot be required and have default value."
+      end
+      
+      if @enum && !@enum.is_a?(Array)
+        raise ArgumentError,
+          "An argument cannot have an enum other than an array."
+      end
     end
 
     def valid_type?(type)

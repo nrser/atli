@@ -203,7 +203,7 @@ class Thor::Group
       [item]
     end
     alias_method :printable_tasks, :printable_commands
-
+    
     def handle_argument_error(command, error, _args, arity) #:nodoc:
       msg = "#{basename} #{command.name} takes #{arity} argument".dup
       msg << "s" if arity > 1
@@ -211,71 +211,78 @@ class Thor::Group
       raise error, msg
     end
 
-  protected
+    protected
+    # ============================================================================
+    
+      # The method responsible for dispatching given the args.
+      def dispatch(command, given_args, given_opts, config) #:nodoc:
+        if Thor::HELP_MAPPINGS.include?(given_args.first)
+          help(config[:shell])
+          return
+        end
 
-    # The method responsible for dispatching given the args.
-    def dispatch(command, given_args, given_opts, config) #:nodoc:
-      if Thor::HELP_MAPPINGS.include?(given_args.first)
-        help(config[:shell])
-        return
+        args, opts = Thor::Options.split(given_args)
+        opts = given_opts || opts
+
+        instance = new(args, opts, config)
+        yield instance if block_given?
+
+        if command
+          instance.invoke_command(all_commands[command])
+        else
+          instance.invoke_all
+        end
       end
 
-      args, opts = Thor::Options.split(given_args)
-      opts = given_opts || opts
-
-      instance = new(args, opts, config)
-      yield instance if block_given?
-
-      if command
-        instance.invoke_command(all_commands[command])
-      else
-        instance.invoke_all
+      # The banner for this class. You can customize it if you are invoking the
+      # thor class by another ways which is not the Thor::Runner.
+      def banner
+        "#{basename} #{self_command.formatted_usage(self, false)}"
       end
-    end
 
-    # The banner for this class. You can customize it if you are invoking the
-    # thor class by another ways which is not the Thor::Runner.
-    def banner
-      "#{basename} #{self_command.formatted_usage(self, false)}"
-    end
+      # Represents the whole class as a command.
+      def self_command #:nodoc:
+        Thor::DynamicCommand.new(namespace, class_options)
+      end
+      alias_method :self_task, :self_command
 
-    # Represents the whole class as a command.
-    def self_command #:nodoc:
-      Thor::DynamicCommand.new(namespace, class_options)
-    end
-    alias_method :self_task, :self_command
+      def baseclass #:nodoc:
+        Thor::Group
+      end
 
-    def baseclass #:nodoc:
-      Thor::Group
-    end
-
-    def create_command(meth) #:nodoc:
-      commands[meth.to_s] = Thor::Command.new(meth, nil, nil, nil, nil)
-      true
-    end
-    alias_method :create_task, :create_command
-  end
+      def create_command(meth) #:nodoc:
+        commands[meth.to_s] = Thor::Command.new(meth, nil, nil, nil, nil)
+        true
+      end
+      alias_method :create_task, :create_command
+    
+    public # end protected ***************************************************
+  
+  end # class << self ********************************************************
 
   include Thor::Base
 
-protected
+  protected
+  # ==========================================================================
 
-  # Shortcut to invoke with padding and block handling. Use internally by
-  # invoke and invoke_from_option class methods.
-  def _invoke_for_class_method(klass, command = nil, *args, &block) #:nodoc:
-    with_padding do
-      if block
-        case block.arity
-        when 3
-          yield(self, klass, command)
-        when 2
-          yield(self, klass)
-        when 1
-          instance_exec(klass, &block)
+    # Shortcut to invoke with padding and block handling. Use internally by
+    # invoke and invoke_from_option class methods.
+    def _invoke_for_class_method(klass, command = nil, *args, &block) #:nodoc:
+      with_padding do
+        if block
+          case block.arity
+          when 3
+            yield(self, klass, command)
+          when 2
+            yield(self, klass)
+          when 1
+            instance_exec(klass, &block)
+          end
+        else
+          invoke klass, command, *args
         end
-      else
-        invoke klass, command, *args
       end
     end
-  end
+  
+  public # end protected *****************************************************
 end
