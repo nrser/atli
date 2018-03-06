@@ -178,6 +178,27 @@ class Thor
         raise error
       end
       
+      
+      # Hook for processing values return by command methods. So you can
+      # format it or print it or whatever.
+      # 
+      # This implementation does nothing.
+      # 
+      # @param [Object] result
+      #   Whatever the command returned.
+      # 
+      # @param [Thor::Command] command
+      #   The command instance that was running when the error occurred.
+      # 
+      # @param [Array<String>] args
+      #   The arguments to the command that was running.
+      # 
+      # @return [void]
+      #   Return value is ignored.
+      # 
+      def on_run_success result, command, args
+      end
+      
     # end protected
     
     

@@ -63,7 +63,7 @@ class Thor
       # 1.  Protect from calling private methods by error'ing out if {#name}
       #     is the name of a private method of `instance`.
       #     
-      if private_method? instance
+      result = if private_method? instance
         instance.class.handle_no_command_error name
       
       # 2.  The success case - if {#name} is a public method of `instance`
@@ -100,6 +100,8 @@ class Thor
         instance.class.handle_no_command_error name
       
       end # Method invocation switch
+      
+      instance.send :on_run_success, result, self, args
       
     rescue ArgumentError => error
       if handle_argument_error? instance, error, caller
