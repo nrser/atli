@@ -182,7 +182,7 @@ class Thor
       # Hook for processing values return by command methods. So you can
       # format it or print it or whatever.
       # 
-      # This implementation does nothing.
+      # This implementation just returns the result per the specs.
       # 
       # @param [Object] result
       #   Whatever the command returned.
@@ -193,10 +193,11 @@ class Thor
       # @param [Array<String>] args
       #   The arguments to the command that was running.
       # 
-      # @return [void]
-      #   Return value is ignored.
+      # @return [Object]
+      #   The `result`.
       # 
       def on_run_success result, command, args
+        result
       end
       
     # end protected

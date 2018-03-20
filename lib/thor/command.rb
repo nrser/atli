@@ -101,7 +101,7 @@ class Thor
       
       end # Method invocation switch
       
-      instance.send :on_run_success, result, self, args
+      instance.__send__ :on_run_success, result, self, args
       
     rescue ArgumentError => error
       if handle_argument_error? instance, error, caller

@@ -59,6 +59,7 @@ describe Thor::Command do
     it "runs a command by calling a method in the given instance" do
       dub = double
       expect(dub).to receive(:can_has) { |*args| args }
+      expect(dub).to receive(:on_run_success) { |result, *rest| result }
       expect(command.run(dub, [1, 2, 3])).to eq([1, 2, 3])
     end
 
@@ -66,6 +67,10 @@ describe Thor::Command do
       klass = Class.new do
         def self.handle_no_command_error(name)
           name
+        end
+        
+        def on_run_success result, *rest
+          result
         end
 
         def can_has
