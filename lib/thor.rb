@@ -189,9 +189,7 @@ class Thor
     #   
     #   which, of course, doesn't work if +cmd+ is inside +subcmd+.
     # 
-    # @return [void]
-    #   *Atli* - as far as I can tell, this method just writes to STDOUT
-    #   and the return value is not / should not be used for anything.
+    # @return [nil]
     #
     def command_help(shell, command_name, subcommand = false)
       meth = normalize_command_name(command_name)
@@ -208,13 +206,15 @@ class Thor
       else
         shell.say command.description
       end
+      
+      nil
     end
     alias_method :task_help, :command_help
 
     # Prints help information for this class.
     #
-    # ==== Parameters
-    # shell<Thor::Shell>
+    # @param [Thor::Shell] shell
+    # @return (see Thor::Base::ClassMethods#class_options_help)
     #
     def help(shell, subcommand = false)
       list = printable_commands(true, subcommand)

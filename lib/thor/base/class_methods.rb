@@ -533,7 +533,9 @@ module Thor::Base::ClassMethods
 
     # Prints the class options per group. If an option does not belong to
     # any group, it's printed as Class option.
-    #
+    # 
+    # @return [nil]
+    # 
     def class_options_help(shell, groups = {}) #:nodoc:
       # Group options by group
       class_options.each do |_, value|
@@ -549,6 +551,8 @@ module Thor::Base::ClassMethods
       groups.each do |group_name, options|
         print_options(shell, options, group_name)
       end
+      
+      nil
     end
     
     
