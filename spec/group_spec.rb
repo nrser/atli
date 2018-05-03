@@ -146,7 +146,7 @@ describe Thor::Group do
 
       it "shows invoked options on help" do
         content = capture(:stdout) { G.help(Thor::Base.shell.new) }
-        expect(content).to match(/defined options:/)
+        expect(content).to match(/Defined options:/)
         expect(content).to match(/\[--unused\]/)
         expect(content).to match(/# This option has no use/)
       end
@@ -175,7 +175,7 @@ describe Thor::Group do
 
       it "shows invoked options on help" do
         content = capture(:stdout) { H.help(Thor::Base.shell.new) }
-        expect(content).to match(/defined options:/)
+        expect(content).to match(/Defined options:/)
         expect(content).to match(/\[--unused\]/)
         expect(content).to match(/# This option has no use/)
       end
