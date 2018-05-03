@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   # ============================================================================
   
   # My guns
-  spec.add_dependency "nrser", '~> 0.3.0'
+  spec.add_dependency "nrser", '~> 0.3.1'
   
   
   # Development Dependencies
