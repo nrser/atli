@@ -13,7 +13,7 @@ require 'thor/base/common_class_options'
 # Refinements
 # =======================================================================
 
-using NRSER
+require 'nrser/refinements/types'
 using NRSER::Types
 
 

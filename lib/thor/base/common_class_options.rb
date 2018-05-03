@@ -12,7 +12,7 @@ require 'nrser'
 # Refinements
 # =======================================================================
 
-using NRSER
+require 'nrser/refinements/types'
 using NRSER::Types
 
 # Declarations

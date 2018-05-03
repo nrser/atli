@@ -26,7 +26,7 @@ require 'thor/base/class_methods'
 # Refinements
 # =======================================================================
 
-using NRSER
+require 'nrser/refinements/types'
 using NRSER::Types
 
 
