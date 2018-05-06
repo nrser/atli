@@ -1,11 +1,14 @@
 ##############################################################################
 # BEGIN QB.gitingore
 #
-# generated qb playbooks
+# Generated QB playbooks
 .qb-playbook.yml
 
-# ansible retry files
+# Ansible-generated retry files for QB playbooks
 .qb-playbook.retry
+
+# Ansible error files that QB still sometimes generates
+ansible-error.log
 #
 # END QB.gitingore
 ##############################################################################
@@ -105,5 +108,3 @@ b/
 !/doc/
 /doc/site/
 
-# nrser.rb role's vars.rb module error logs
-ansible-error.lo
