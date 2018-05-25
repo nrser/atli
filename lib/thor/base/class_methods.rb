@@ -17,10 +17,11 @@ require 'nrser/refinements/types'
 using NRSER::Types
 
 
-# Declarations
+# Namespace
 # =======================================================================
 
-module Thor::Base; end
+class   Thor
+module  Base
 
 
 # Definitions
@@ -29,7 +30,7 @@ module Thor::Base; end
 # Methods that are mixed in as module/class/singleton methods to modules
 # that include {Thor::Base}.
 # 
-module Thor::Base::ClassMethods
+module ClassMethods
   
   # Mixins
   # ==========================================================================
@@ -734,4 +735,11 @@ module Thor::Base::ClassMethods
     
   public # end Protected Mixin Methods ***************************************
   
-end # module Thor::Base::ClassMethods
+end # module ClassMethods
+
+
+# /Namespace
+# ========================================================================
+
+end # module Base
+end # class Thor
