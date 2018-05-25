@@ -5,14 +5,26 @@ class Thor
                               :description,
                               :long_description,
                               :usage,
+                              :examples,
                               :options,
                               :ancestor_name )
     include SemanticLogger::Loggable
     
     FILE_REGEXP = /^#{Regexp.escape(File.dirname(__FILE__))}/
 
-    def initialize(name, description, long_description, usage, options = nil)
-      super(name.to_s, description, long_description, usage, options || {})
+    def initialize  name,
+                    description,
+                    long_description,
+                    usage,
+                    examples,
+                    options = nil
+      super \
+        name.to_s,
+        description,
+        long_description,
+        usage,
+        examples,
+        options || {}
     end
 
     def initialize_copy(other) #:nodoc:

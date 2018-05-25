@@ -2,6 +2,7 @@ require "set"
 require 'nrser'
 require 'semantic_logger'
 require "thor/base"
+require 'thor/example'
 
 
 class Thor
@@ -199,7 +200,6 @@ class Thor
       shell.say "  #{banner(command, nil, subcommand)}"
       shell.say
       
-      # class_options_help(shell, nil => command.options.values)
       class_options_help \
         shell,
         command.options.values.group_by { |option| option.group }
@@ -209,6 +209,24 @@ class Thor
         shell.print_wrapped(command.long_description, :indent => 2)
       else
         shell.say command.description
+      end
+      
+      unless command.examples.empty?
+        shell.say "\n"
+        shell.say "Examples:"
+        shell.say "\n"
+        
+        command.examples.each_with_index do |example, index|
+          lines = example.lines
+          
+          shell.say "1.  #{ lines[0] }"
+          
+          lines[1..-1].each do |line|
+            shell.say "    #{ line }"
+          end
+        end
+        
+        shell.say "\n"
       end
       
       nil
@@ -671,6 +689,9 @@ class Thor
         @desc ||= nil
         @long_desc ||= nil
         @hide ||= nil
+        
+        examples = @examples || []
+        @examples = []
 
         if @usage && @desc
           base_class = @hide ? Thor::HiddenCommand : Thor::Command
@@ -679,6 +700,7 @@ class Thor
             @desc,
             @long_desc,
             @usage,
+            examples,
             method_options
           )
           @usage, @desc, @long_desc, @method_options, @hide = nil
