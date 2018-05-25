@@ -1,3 +1,6 @@
+# Need {String#titleize}
+require 'active_support/core_ext/string/inflections'
+
 class Thor
   class Option < Argument #:nodoc:
     attr_reader :aliases, :group, :lazy_default, :hide
@@ -9,7 +12,7 @@ class Thor
       options[:required] = false unless options.key?(:required)
       super
       @lazy_default = options[:lazy_default]
-      @group        = options[:group].to_s.capitalize if options[:group]
+      @group        = options[:group].to_s.titleize if options[:group]
       @aliases      = Array(options[:aliases])
       @hide         = options[:hide]
     end

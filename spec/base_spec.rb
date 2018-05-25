@@ -132,7 +132,7 @@ describe Thor::Base do
     end
 
     it "shows options in different groups" do
-      expect(@content).to match(/Options\:/)
+      expect(@content).to match(/General options\:/)
       expect(@content).to match(/Runtime options\:/)
       expect(@content).to match(/\-p, \[\-\-pretend\]/)
     end

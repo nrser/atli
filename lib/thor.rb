@@ -198,7 +198,12 @@ class Thor
       shell.say "Usage:"
       shell.say "  #{banner(command, nil, subcommand)}"
       shell.say
-      class_options_help(shell, nil => command.options.values)
+      
+      # class_options_help(shell, nil => command.options.values)
+      class_options_help \
+        shell,
+        command.options.values.group_by { |option| option.group }
+      
       if command.long_description
         shell.say "Description:"
         shell.print_wrapped(command.long_description, :indent => 2)
@@ -435,10 +440,26 @@ class Thor
     def find_shared_method_options *names, groups: nil
       groups_set = Set[*groups]
       
-      shared_method_options.
-        select { |name, option|
-          names.include?( name ) || !(option.groups & groups_set).empty?
-        }
+      shared_method_options.each_with_object( {} ) do |(name, option), results|
+        match = {}
+        
+        if names.include? name
+          match[:name] = true
+        end
+        
+        match_groups = option.groups & groups_set
+          
+        unless match_groups.empty?
+          match[:groups] = match_groups
+        end
+        
+        unless match.empty?
+          results[name] = {
+            option: option,
+            match: match,
+          }
+        end
+      end
     end
     alias_method :find_shared_options, :find_shared_method_options
     
@@ -553,8 +574,8 @@ class Thor
     # 
     def include_method_options *names, groups: nil
       find_shared_method_options( *names, groups: groups ).
-        each do |name, option|
-          method_options[name] = option
+        each do |name, result|
+          method_options[name] = Thor::IncludedOption.new **result
         end
     end
     

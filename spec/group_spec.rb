@@ -70,7 +70,7 @@ describe Thor::Group do
     end
 
     it "shows options information" do
-      expect(@content).to match(/Options/)
+      expect(@content).to match(/General options/)
       expect(@content).to match(/\[\-\-third=THREE\]/)
     end
   end

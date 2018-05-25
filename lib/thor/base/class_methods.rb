@@ -536,7 +536,7 @@ module Thor::Base::ClassMethods
     # 
     # @return [nil]
     # 
-    def class_options_help(shell, groups = {}) #:nodoc:
+    def class_options_help shell, groups = {}
       # Group options by group
       class_options.each do |_, value|
         groups[value.group] ||= []
@@ -545,7 +545,10 @@ module Thor::Base::ClassMethods
 
       # Deal with default group
       global_options = groups.delete(nil) || []
-      print_options(shell, global_options)
+      print_options \
+        shell,
+        global_options,
+        (groups.empty? ? nil : 'General')
 
       # Print all others
       groups.each do |group_name, options|
