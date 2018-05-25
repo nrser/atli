@@ -251,7 +251,7 @@ class Thor::Group
       end
 
       def create_command(meth) #:nodoc:
-        commands[meth.to_s] = Thor::Command.new(meth, nil, nil, nil, nil)
+        commands[meth.to_s] = Thor::Command.new name: meth
         true
       end
       alias_method :create_task, :create_command

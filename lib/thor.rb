@@ -695,14 +695,14 @@ class Thor
 
         if @usage && @desc
           base_class = @hide ? Thor::HiddenCommand : Thor::Command
-          commands[meth] = base_class.new(
-            meth,
-            @desc,
-            @long_desc,
-            @usage,
-            examples,
-            method_options
-          )
+          commands[meth] = base_class.new \
+            name: meth,
+            description: @desc,
+            long_description: @long_desc,
+            usage: @usage,
+            examples: examples,
+            options: method_options
+          
           @usage, @desc, @long_desc, @method_options, @hide = nil
           true
         elsif all_commands[meth] || meth == "method_missing"

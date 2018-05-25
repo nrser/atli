@@ -12,12 +12,12 @@ class Thor
     
     FILE_REGEXP = /^#{Regexp.escape(File.dirname(__FILE__))}/
 
-    def initialize  name,
-                    description,
-                    long_description,
-                    usage,
-                    examples,
-                    options = nil
+    def initialize  name:,
+                    description: nil,
+                    long_description: nil,
+                    usage: nil,
+                    examples: [],
+                    options: nil
       super \
         name.to_s,
         description,
@@ -313,11 +313,11 @@ class Thor
   # A dynamic command that handles method missing scenarios.
   class DynamicCommand < Command
     def initialize(name, options = nil)
-      super(  name.to_s,
-              "A dynamically-generated command",
-              name.to_s,
-              name.to_s,
-              options )
+      super(  name: name.to_s,
+              description: "A dynamically-generated command",
+              long_description: name.to_s, # why?!
+              usage: name.to_s,
+              options: options )
     end
 
     def run(instance, args = [])
