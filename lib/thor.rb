@@ -3,9 +3,11 @@ require 'nrser'
 require 'semantic_logger'
 require "thor/base"
 require 'thor/example'
+require 'thor/completion/bash'
 
 
 class Thor
+  include Thor::Completion::Bash::Thor
   
   class << self
     # Allows for custom "Command" package naming.

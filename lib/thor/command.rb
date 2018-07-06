@@ -1,4 +1,5 @@
 require 'semantic_logger'
+require_relative './completion/bash'
 
 class Thor
   class Command < Struct.new( :name,
@@ -9,6 +10,7 @@ class Thor
                               :options,
                               :ancestor_name )
     include SemanticLogger::Loggable
+    include Thor::Completion::Bash::Command
     
     FILE_REGEXP = /^#{Regexp.escape(File.dirname(__FILE__))}/
 
