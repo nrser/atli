@@ -2,8 +2,6 @@ require 'helper'
 
 require_relative '../fixtures/bash_complete_fixtures'
 
-NRSER::Log.setup_for_rspec! dest: Thor::ROOT.join( 'tmp', 'rspec.log' ), color: true
-
 describe_spec_file(
   spec_path:        __FILE__,
   module:           Thor::Completion::Bash::ThorMixin,

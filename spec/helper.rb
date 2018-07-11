@@ -25,6 +25,12 @@ require "webmock/rspec"
 require 'nrser'
 require 'nrser/rspex'
 
+# Log to `//tmp/spec.log` in color (and multiline)
+NRSER::Log.setup_for_rspec! dest: {
+  file_name: Thor::ROOT.join( 'tmp', 'spec.log' ),
+  formatter: :color,
+}
+
 WebMock.disable_net_connect!(:allow => "coveralls.io")
 
 # Set shell to basic
