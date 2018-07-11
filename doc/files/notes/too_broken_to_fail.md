@@ -6,7 +6,7 @@ Ya know, if you can't say nice things... so I'll just leave this here:
 1.  https://github.com/erikhuda/thor/issues/244
 2.  https://github.com/erikhuda/thor/pull/521
 
-Basically, when a Thor command invoked via `Thor::Base::ClassMethods` - which is *the* documented way to [make an executable with Thor][] - if the command fails because a `Thor::Error` is raised - like when bad arguments are provided, among other things - Thor writes the error message to `$stderr` then... nothing. Absolutely nothing.
+Basically, when a Thor command invoked via `Thor::Base::ClassMethods#start` - which is *the* documented way to [make an executable with Thor][] - if the command fails because a `Thor::Error` is raised - like when bad arguments are provided, among other things - Thor writes the error message to `$stderr` then... nothing. Absolutely nothing.
 
 [make an executable with Thor]: https://github.com/erikhuda/thor/wiki/Making-An-Executable)
 
