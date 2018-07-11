@@ -36,6 +36,6 @@ group :test do
 end
 
 # Use sibling when developing
-# gem 'nrser', path: '../nrser'
+gem 'nrser', path: '../nrser'
 
 gemspec
