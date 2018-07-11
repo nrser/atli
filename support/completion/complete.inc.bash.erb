@@ -1,0 +1,108 @@
+##
+# Bash completion adapter for `locd`
+# 
+# `source` me!
+# 
+# @note
+#   I had through about trying to use $BASHPID to perhaps keep state on a
+#   completion server of some type, but it changes with every invocation...
+#   would need to reach the parent process' PID somehow, assuming that's even
+#   how completion works.
+# 
+# @note
+#   It looks like `complete` (the Bash builtin that facilitates completion)
+#   can take a command to execute instead of a function.
+#   
+#   Since we're going to have to shell-out in some way, that might be better
+#   so we can write the logic in Ruby (or at least not bash). Assuming it
+#   sets the completion ENV vars and you work from there, so we would lose
+#   the `_init_completion` functionality from `bash-completion` (v2).
+#   
+##
+
+# Functions
+# ============================================================================
+
+# Append a message to $LOCD_BASH_COMP_DEBUG_FILE if the var is not empty.
+# 
+__<%= name %>_debug() {
+  if [[ -n ${LOCD_BASH_COMP_DEBUG_FILE} ]]; then
+    echo "$*" >> "${LOCD_BASH_COMP_DEBUG_FILE}"
+  fi
+}
+
+
+# Entry point for bash completion.
+# 
+__<%= name %>_complete() {
+  local start_time="$(ms)"
+  __<%= name %>_debug "${FUNCNAME[0]}: STARTing the show...."
+  
+  local cur prev words cword split
+  
+  _init_completion -s || return
+  
+  __<%= name %>_debug "${FUNCNAME[0]}: initialized" \
+    "cur='$cur'" \
+    "prev='$prev'" \
+    "words='${words[@]}'" \
+    "cword='$cword'" \
+    "split='${split}'"
+  
+  local response
+  
+  __<%= name %>_debug "${FUNCNAME[0]}: Getting respond from app bin at ${words[0]}"
+
+  response="$(${words[0]} bash-complete complete -- "$cur" "$prev" "${cword}" "${split}" "${words[@]}")"
+
+  __<%= name %>_debug "${FUNCNAME[0]}: response is $response"
+  
+  COMPREPLY=( $(compgen -W "$response" -- "$cur" ) )
+  
+  local end_time="$(ms)"
+  local delta_s="$((end_time-start_time))"
+  
+  __<%= name %>_debug "${FUNCNAME[0]}: We're DONE here ($delta_s ms)."
+  __<%= name %>_debug
+  
+  return 0
+}
+
+
+# Binding
+# ============================================================================
+
+# Hook in the `__locd_debug` function to `complete`
+# 
+# @see https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html
+# 
+if [[ $(type -t compopt) = "builtin" ]]; then
+  # -o default (option `default`)
+  #   Use Readline’s default filename completion if the compspec generates
+  #   no matches.
+  # 
+  # -F __locd_complete
+  #   Tell `complete` to execute the `__locd_complete` function in the current
+  #   shell environemnt.
+  #   
+  complete -o default -F __<%= name %>_complete <%= bin %>
+  # complete -o default -C 'locd complete-cmd' locd
+else
+  # -o default (option `default`)
+  #   Use Readline’s default filename completion if the compspec generates
+  #   no matches.
+  # 
+  # -o nospace (option `nospace`)
+  #   "Tell Readline not to append a space (the default) to words completed at
+  #   the end of the line." (via docs, see above).
+  #   
+  #   Not sure why this is here, guessing if `compopt` is *not* a `builtin`
+  #   then maybe that detects and older version? My `bash@4.4.23` has
+  #   `compopt` as a `builtin`, so have not taken this branch.
+  # 
+  # -F __locd_complete
+  #   Tell `complete` to execute the `__locd_complete` function in the current
+  #   shell environemnt.
+  #   
+  complete -o default -o nospace -F __<%= name %>_complete <%= bin %>
+fi

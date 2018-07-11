@@ -1,27 +1,14 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-# Requirements
-# =======================================================================
-
-# Stdlib
-# -----------------------------------------------------------------------
-
-# Deps
-# -----------------------------------------------------------------------
-
-require 'nrser'
-require 'nrser/labs/i8'
 
 # Project / Package
 # -----------------------------------------------------------------------
 
-
-# Refinements
-# =======================================================================
-
-require 'nrser/refinements/types'
-using NRSER::Types
+require_relative './bash/command_mixin'
+require_relative './bash/request'
+require_relative './bash/subcmd'
+require_relative './bash/thor_mixin'
 
 
 # Namespace
@@ -36,122 +23,75 @@ module  Completion
 
 # Experimental support for Bash completions.
 # 
+# To enable, require this module and add the following to your entry-point
+# {Thor} subclass:
+# 
+#     include Thor::Completion::Bash
+# 
+# You should now have a `bash-complete` subcommand present. You can test
+# this out with
+# 
+#     YOUR_EXE bash-complete help
+# 
+# where `YOUR_EXE` is replaced with your executable name.
+# 
+# You should see output like
+#     
+#     Commands:
+#       locd bash-complete complete -- CUR PREV CWORD SPLIT WORDS...  # (...)
+#       locd bash-complete help [COMMAND]                             # (...)
+#       locd bash-complete setup                                      # (...)
+# 
+# 
+# Then, to hook your executable into Bash's `compelte` builtin:
+# 
+#     source <(YOUR_EXE bash-complete setup)
+# 
+# where, again, `YOUR_EXE` is replaced with your executable name.
+# 
 module Bash
   
-  Request = I8::Struct.new \
-    cur: t.str,
-    prev: t.str,
-    cword: t.non_neg_int,
-    split: t.bool,
-    words: t.array( t.str )
-  
-  # Needs to be mixed in to {Thor}. It's all class methods at the moment.
+  # Hook to setup Bash complete on including {Thor} subclass.
   # 
-  # @todo
-  #   Deal with that {Thor::Group} thing? I never use it...
-  #   
-  module Thor
+  # 1.  Mixes {ThorMixin} into {Thor}.
+  # 2.  Mixes {CommandMixin} into {Thor::Command}.
+  # 3.  Creates a new subclass of {Subcmd} boun0d to `base` and adds that
+  #     as `bash-complete` to `base` via {Thor.subcommand}.
+  # 
+  # @param [Class<Thor>] base
+  #   The class that inluded {Thor::Completion::Bash}. Should be a {Thor}
+  #   subclass and be the main/entry command of the program, though neither
+  #   of these are enforced.
+  # 
+  # @return [nil]
+  #   Totally side-effect based.
+  # 
+  def self.included base
     
-    # Methods to be mixed as class methods in to {Thor}.
-    # 
-    module ClassMethods
-      
-      # Get this class' {Thor::Command} instances, keyed by how their names will
-      # appear in the UI (replace `_` with `-`).
-      # 
-      # @param [Boolean] include_hidden:
-      #   When `true`, "hidden" commands will also be included.
-      # 
-      # @return [Hash<String, Thor::Command>]
-      # 
-      def all_commands_by_ui_name include_hidden: false
-        all_commands.
-          each_with_object( {} ) { |(name, cmd), hash|
-            next if cmd.hidden? && !include_hidden
-            hash[ name.tr( '_', '-' ) ] = cmd
-          }
-      end # .all_commands_by_ui_name
+    unless ThorMixin === Thor
+      Thor.send :include, ThorMixin
+    end
 
-      # 
-      # 
-      def bash_complete comp_req:, index:
-        # Find the command, if any
-        
-        logger.info __method__,
-          comp_req: comp_req,
-          index: index,
-          word: comp_req.words[index]
-        
-        scan_index = index
-        
-        while (comp_req.words[scan_index] || '').start_with? '-'
-          scan_index += 1
-        end
-        
-        cmd_ui_name = comp_req.words[scan_index] || ''
-        
-        cmd = all_commands_by_ui_name[cmd_ui_name]
-        
-        if cmd.nil?
-          return all_commands_by_ui_name.keys.select { |ui_name|
-            ui_name.start_with? cmd_ui_name
-          }
-        end
-        
-        index = scan_index + 1
-        
-        # is it a subcommand?
-        if subcommand_classes.key? cmd.name
-          # It is, hand it off to there
-          subcommand_classes[cmd.name].bash_complete \
-            comp_req: comp_req,
-            index: index
-        else
-          # It's a command, have that handle it
-          cmd.bash_complete \
-            comp_req: comp_req,
-            index: index
-        end
+    unless CommandMixin === Thor::Command
+      Thor::Command.send :include, CommandMixin
+    end
+
+    subcmd_class = Class.new Subcmd do
+      def self.target
+        @target
       end
-      
-    end # module ClassMethods
-    
-    # Hook to mix {ClassMethods} in on include.
-    # 
-    def self.included base
-      base.extend ClassMethods
     end
+
+    subcmd_class.instance_variable_set :@target, base
     
-  end # module Thor
-  
-  
-  # Methods that need to mixed in to {Thor::Command}.
-  # 
-  module Command
-    
-    def bash_complete comp_req:, index:
-      # TODO Handle
-      return [] if comp_req.split
-      
-      logger.info __method__,
-        cmd_name: name,
-        options: options
-      
-      options.
-        each_with_object( [ '--help' ] ) { |(name, opt), results|
-          ui_name = name.to_s.tr( '_', '-' )
-          
-          if opt.type == :boolean
-            results << "--#{ ui_name }"
-            results << "--no-#{ ui_name }"
-          else
-            results << "--#{ ui_name }="
-          end
-        }.
-        select { |term| term.start_with? comp_req.cur }
-    end
-    
-  end # module Command
+    # Install {Subcmd} as a subcommand
+    base.send :subcommand,
+              'bash-complete',
+              subcmd_class,
+      desc:   "Support for Bash command completion."
+
+    nil
+  end # #.included
   
 end # module Bash
 

@@ -485,7 +485,7 @@ module ClassMethods
         "#{namespace.inspect} namespace."
     end
     raise Thor::UndefinedCommandError,
-      "Could not find command #{command.inspect}."
+      "Could not find command #{command.inspect}, commands: #{ all_commands.keys }"
   end
   alias_method :handle_no_task_error, :handle_no_command_error
   
