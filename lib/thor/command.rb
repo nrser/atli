@@ -1,5 +1,5 @@
+require 'shellwords'
 require 'semantic_logger'
-require_relative './completion/bash'
 
 class Thor
   class Command < Struct.new( :name,
@@ -9,8 +9,8 @@ class Thor
                               :examples,
                               :options,
                               :ancestor_name )
+    
     include SemanticLogger::Loggable
-    include Thor::Completion::Bash::Command
     
     FILE_REGEXP = /^#{Regexp.escape(File.dirname(__FILE__))}/
 
@@ -191,6 +191,47 @@ class Thor
       # Strip and go!
       formatted.strip
     end
+
+
+    # The command's name as depicted in it's {#usage} message.
+    # 
+    # We prefer this format when completing commands because it's how we 
+    # depict the command to the user.
+    # 
+    # @see Thor::Completion
+    # @see #names_by_format
+    # 
+    # @return [String]
+    # 
+    def usage_name
+      @usage_name ||= usage.shellsplit[0]
+    end
+
+
+    # The name formats we recognize for the command, in command completion
+    # resolution order.
+    # 
+    # @note
+    #   In reality, since input words have `-` replaced with `_` when finding
+    #   their instances durring execution, 
+    # 
+    # @return [Hash<Symbol, String>]
+    #   Keys and values in order (and order matters when completing commands,
+    #   first result takes priority):
+    #   
+    #   1.  `usage:`    {#usage_name}
+    #   2.  `method:`   {#name}, which is the command's actual method name,
+    #                   and hence "underscored".
+    #   3.  `dashed:`   A dash-separated version of {#name}.
+    # 
+    def names_by_format
+      @names_by_format ||= {
+        usage:  usage_name,
+        method: name,
+        dashed: name.dasherize,
+      }.freeze
+    end
+
 
   protected
 
