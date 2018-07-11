@@ -28,4 +28,15 @@ class Thor
   # @return [String]
   # 
   THOR_VERSION = '0.1.10.dev'
+
+
+  # Are we running from the source code (vesus from a Gem install)?
+  # 
+  # Looks for the `//dev` directory, which is not included in the package.
+  # 
+  # @return [Boolean]
+  # 
+  def self.running_from_source?
+    ( ROOT + 'dev' ).directory?
+  end
 end
