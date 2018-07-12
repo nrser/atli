@@ -1,5 +1,6 @@
 require 'helper'
 
+require_relative '../bash_comp_spec_helpers'
 require_relative '../fixtures/bash_complete_fixtures'
 
 describe_spec_file(
@@ -9,34 +10,7 @@ describe_spec_file(
   method:           :bash_complete,
 ) do
 
-  def self.basename
-    BashCompleteFixtures::Main.basename
-  end
-
-  def basename
-    self.class.basename
-  end
-
-  def build_request *words, cword: -1, split: false
-    words.map! { |word|
-      if word == '$0'
-        basename
-      else
-        word
-      end
-    }
-
-    if cword < 0
-      cword = words.length + cword
-    end
-
-    Thor::Completion::Bash::Request.new \
-      words: words,
-      cword: cword,
-      cur: words[cword],
-      prev: words[cword - 1],
-      split: split
-  end
+  include BashCompSpecHelpers
 
   describe_setup "process `request` and sort results" do
 
