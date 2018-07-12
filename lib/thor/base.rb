@@ -222,7 +222,7 @@ class Thor
       base.send :include, Shell
       
       base.no_commands {
-        base.send :include, SemanticLogger::Loggable
+        base.send :include, NRSER::Log::Mixin
       }
       
     end

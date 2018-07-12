@@ -1,5 +1,5 @@
 require 'shellwords'
-require 'semantic_logger'
+require 'nrser'
 
 class Thor
   class Command < Struct.new( :name,
@@ -10,7 +10,7 @@ class Thor
                               :options,
                               :ancestor_name )
     
-    include SemanticLogger::Loggable
+    include NRSER::Log::Mixin
     
     FILE_REGEXP = /^#{Regexp.escape(File.dirname(__FILE__))}/
 

@@ -1,6 +1,8 @@
+require 'nrser'
+
 class Thor
   class Arguments # rubocop:disable ClassLength
-    include SemanticLogger::Loggable
+    include NRSER::Log::Mixin
     
     NUMERIC = /[-+]?(\d*\.\d+|\d+)/
 

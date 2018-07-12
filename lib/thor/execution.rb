@@ -46,7 +46,8 @@ class Thor::Execution
   # Mixins
   # ============================================================================
   
-  include SemanticLogger::Loggable
+  # Add {.logger} and {#logger}
+  include NRSER::Log::Mixin
   
   
   # Attributes
