@@ -1,5 +1,12 @@
+# Namespace
+# ========================================================================
+
 class Thor
 module CoreExt
+
+# Definitions
+# ========================================================================
+
 # A hash with indifferent access and magic predicates.
 #
 #   hash = HashWithIndifferentAccess.new 'foo' => 'bar', 'baz' => 'bee', 'force' => true
@@ -34,4 +41,11 @@ class HashWithIndifferentAccess < ::HashWithIndifferentAccess #:nodoc:
     
   public # end protected ***************************************************
   
-end; end; end
+end
+
+
+# /Namespace
+# ========================================================================
+
+end # module CoreExt
+end # class Thor
