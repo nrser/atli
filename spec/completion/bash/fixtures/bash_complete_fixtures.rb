@@ -122,6 +122,14 @@ module BashCompleteFixtures
     
     desc "dashed-main-cmd", "Main command with dashed usage name."
     
+    option :bool_opt,
+      desc: "A boolean option",
+      type: :boolean
+    
+    option :str_opt,
+      desc: "A string option",
+      type: :string
+
     def dashed_main_cmd
     end
 

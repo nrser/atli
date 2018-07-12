@@ -35,7 +35,10 @@ __<%= name %>_debug() {
 # Entry point for bash completion.
 # 
 __<%= name %>_complete() {
-  local start_time="$(ms)"
+  # Timing is commented out 'cause depends on a ms-resolution bin I built
+  # at some point and don't want to figure that out...
+  # local start_time="$(ms)"
+
   __<%= name %>_debug "${FUNCNAME[0]}: STARTing the show...."
   
   local cur prev words cword split
@@ -49,20 +52,66 @@ __<%= name %>_complete() {
     "cword='$cword'" \
     "split='${split}'"
   
-  local response
-  
   __<%= name %>_debug "${FUNCNAME[0]}: Getting respond from app bin at ${words[0]}"
 
-  response="$(${words[0]} bash-complete complete -- "$cur" "$prev" "${cword}" "${split}" "${words[@]}")"
+  local response="$(${words[0]} bash-complete complete -- "$cur" "$prev" "${cword}" "${split}" "${words[@]}")"
+  
+  # We need to figure out if we're about to complete a `--flag=` word, in
+  # which case we want to turn `nospace` on, do the compelte, then
+  # turn it back off so we don't add an annoying space after the `=`.
+  # 
+  # We'll need these variables for the logic:
+  # 
+  local nospace
+  local response_array=( $response )
+  local response_array_length="${#response_array[@]}"
+  local response_length="${#response}"
 
-  __<%= name %>_debug "${FUNCNAME[0]}: response is $response"
-  
+  __<%= name %>_debug "${FUNCNAME[0]}: Got response;" \
+    "response='$response'" \
+    "response_length='${response_length}'" \
+    "response_array='${response[@]}'" \
+    "response_array_length='${response_array_length}'"
+
+  # We're going to flip `nospace` off if ALL of:
+  # 
+  # 1.  There is only one "word" element in the response.
+  #     
+  # 2.  The response length (in characters) is greater than zero
+  #     (this might be redundant, was here before (1)).
+  #     
+  # 3.  The last character of the single word is `=`.
+  #     
+  # If all of those are true, then `nospace` var should be set to "true".
+  # 
+  # This probably isn't the most bullet-proof logic, but it's a start...
+  # 
+  if (( response_array_length == 1 && response_length > 0 )); then
+    local index=$response_length
+    ((index--))
+    local last_char="${response:$index:1}"
+    [ $last_char == "=" ] && nospace=true
+  fi
+
+  # If we indeed set `nospace` then flip `nospace` off
+  if [[ -n "$nospace" ]]; then
+    compopt +o nospace
+  fi
+
   COMPREPLY=( $(compgen -W "$response" -- "$cur" ) )
+
+  # If we had turned `nospace` off, turn it back on
+  if [[ -n "$nospace" ]]; then
+    compopt -o nospace
+    unset nospace
+  fi
   
-  local end_time="$(ms)"
-  local delta_s="$((end_time-start_time))"
-  
-  __<%= name %>_debug "${FUNCNAME[0]}: We're DONE here ($delta_s ms)."
+  # See comment up top about `ms` bin...
+  # local end_time="$(ms)"
+  # local delta_s="$((end_time-start_time))"
+  # __<%= name %>_debug "${FUNCNAME[0]}: We're DONE here ($delta_s ms)."
+
+  __<%= name %>_debug "${FUNCNAME[0]}: We're DONE here."
   __<%= name %>_debug
   
   return 0
@@ -88,6 +137,8 @@ if [[ $(type -t compopt) = "builtin" ]]; then
   complete -o default -F __<%= name %>_complete <%= bin %>
   # complete -o default -C 'locd complete-cmd' locd
 else
+  # UNTESTED! `compopt` is builtin for me.
+  # 
   # -o default (option `default`)
   #   Use Readline’s default filename completion if the compspec generates
   #   no matches.
