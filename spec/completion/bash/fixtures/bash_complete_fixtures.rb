@@ -42,20 +42,20 @@ module BashCompleteFixtures
 
 
   class Alpha < Base
-    class_option  :main_class_bool_opt,
-    desc:       "A :boolean class option on Main",
+    class_option  :alpha_class_bool_opt,
+    desc:       "A :boolean class option on Alpha",
     type:       :boolean
   
-    class_option  :main_class_str_opt,
-      desc:       "A :string class option on Main",
+    class_option  :alpha_class_str_opt,
+      desc:       "A :string class option on Alpha",
       type:       :string
     
-    class_option  :main_class_str_enum_opt,
-      desc:       "A :string class option on Main with enum values",
+    class_option  :alpha_class_str_enum_opt,
+      desc:       "A :string class option on Alpha with enum values",
       type:       :string,
       enum:       [
-                    'main_class_str_enum_opt_1',
-                    'main_class_str_enum_opt_2',
+                    'alpha_class_str_enum_opt_1',
+                    'alpha_class_str_enum_opt_2',
                   ]
   
     desc "dashed-alpha-cmd", "Alpha command with dashed usage name."
@@ -69,6 +69,36 @@ module BashCompleteFixtures
     def underscored_alpha_cmd
     end
   end # class Alpha
+
+
+  class Beta < Base
+    class_option  :beta_class_bool_opt,
+    desc:       "A :boolean class option on Beta",
+    type:       :boolean
+  
+    class_option  :beta_class_str_opt,
+      desc:       "A :string class option on Beta",
+      type:       :string
+    
+    class_option  :beta_class_str_enum_opt,
+      desc:       "A :string class option on Beta with enum values",
+      type:       :string,
+      enum:       [
+                    'beta_class_str_enum_opt_1',
+                    'beta_class_str_enum_opt_2',
+                  ]
+  
+    desc "dashed-beta-cmd", "Beta command with dashed usage name."
+    
+    def dashed_beta_cmd
+    end
+
+
+    desc "underscored_beta_cmd", "Beta command with underscore usage name."
+    
+    def underscored_beta_cmd
+    end
+  end # class Beta
 
 
   class Main < Base
@@ -102,7 +132,8 @@ module BashCompleteFixtures
     end
 
 
-    subcommand 'alpha', Alpha, desc: 'Subcommand A'
+    subcommand 'my-alpha-sub', Alpha,  desc: 'Subcommand A'
+    subcommand 'my_beta_sub',  Beta,   desc: 'Subcommand A'
     
   end
 

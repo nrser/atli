@@ -85,7 +85,7 @@ class Subcmd < ::Thor
   end # #complete
 
 
-  desc  'setup', 
+  desc  'setup',
         "Source this output in your shell or profile to install."
   
   long_desc <<~END

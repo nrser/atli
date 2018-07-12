@@ -1,6 +1,5 @@
 require "set"
 require 'nrser'
-require 'semantic_logger'
 require "thor/base"
 require 'thor/example'
 
@@ -100,20 +99,35 @@ class Thor
   #   thor -T
   #
   # Will invoke the list command.
+  # 
+  # @example Map a single alias to a command
+  #   map 'ls' => :list
+  # 
+  # @example Map multiple aliases to a command
+  #   map ['ls', 'show'] => :list
+  # 
+  # @note
+  #   
+  #   
   #
-  # ==== Parameters
-  # Hash[String|Array => Symbol]:: Maps the string or the strings in the
-  # array to the given command.
+  # @param [nil | Hash<#to_s | Array<#to_s>, #to_s>?] mappings
+  #   When `nil`, all mappings for the class are returned.
+  #   
+  #   When a {Hash} is provided, sets the `mappings` before returning
+  #   all mappings.
+  #   
+  # @return [HashWithIndifferentAccess<String, Symbol>]
+  #   Mapping of command aliases to command method names.
   #
-  def self.map(mappings = nil)
-    @map ||= from_superclass(:map, {})
+  def self.map mappings = nil
+    @map ||= from_superclass :map, HashWithIndifferentAccess.new
 
     if mappings
       mappings.each do |key, value|
-        if key.respond_to?(:each)
-          key.each { |subkey| @map[subkey] = value }
+        if key.respond_to? :each
+          key.each { |subkey| @map[ subkey.to_s ] = value.to_s }
         else
-          @map[key] = value
+          @map[ key.to_s ] = value.to_s
         end
       end
     end
@@ -737,9 +751,33 @@ class Thor
 
 
     # The method responsible for dispatching given the args.
+    # 
+    # @param [nil | String] meth
+    #   The method name of the command to run. Seems like it's always 
+    #   
+    #   
+    # 
+    # @param [Array<String>] given_args
     def self.dispatch meth, given_args, given_opts, config # rubocop:disable MethodLength
-      meth ||= retrieve_command_name(given_args)
-      command = all_commands[normalize_command_name(meth)]
+      logger.trace "START #{ self.safe_name }.#{ __method__ }",
+        meth: meth,
+        given_args: given_args,
+        given_opts: given_opts,
+        config: config
+
+      meth ||= retrieve_command_name( given_args ).tap { |new_meth|
+        logger.trace "meth set via .retrieve_command_name",
+          meth: new_meth,
+          map: map
+      }
+
+      normalized_name = normalize_command_name meth
+      command = all_commands[normalized_name]
+
+      logger.trace "Fetched command",
+        command: command,
+        all_commands: all_commands.keys,
+        normalized_name: normalized_name
 
       if !command && config[:invoked_via_subcommand]
         # We're a subcommand and our first argument didn't match any of our
@@ -849,7 +887,16 @@ class Thor
 
 
     # Retrieve the command name from given args.
-    def self.retrieve_command_name(args) #:nodoc:
+    # 
+    # @note
+    #   Ugh... this *mutates* `args` 
+    # 
+    # @param [Array<String>] args
+    # 
+    # @return [nil]`
+    #   
+    # 
+    def self.retrieve_command_name args
       meth = args.first.to_s unless args.empty?
       args.shift if meth && (map[meth] || meth !~ /^\-/)
     end
@@ -858,13 +905,17 @@ class Thor
                                         :retrieve_command_name
 
 
-    # receives a (possibly nil) command name and returns a name that is in
+    # Receives a (possibly nil) command name and returns a name that is in
     # the commands hash. In addition to normalizing aliases, this logic
     # will determine if a shortened command is an unambiguous substring of
     # a command or alias.
     #
-    # +normalize_command_name+ also converts names like +animal-prison+
-    # into +animal_prison+.
+    # {.normalize_command_name} also converts names like `animal-prison`
+    # into `animal_prison`.
+    # 
+    # @param [nil | ] meth
+    #   
+    # 
     def self.normalize_command_name meth #:nodoc:
       return default_command.to_s.tr("-", "_") unless meth
 
@@ -890,23 +941,36 @@ class Thor
                                         :normalize_command_name
 
 
-    # this is the logic that takes the command name passed in by the user
-    # and determines whether it is an unambiguous substrings of a command or
+    # This is the logic that takes the command name passed in by the user
+    # and determines whether it is an unambiguous prefix of a command or
     # alias name.
-    def self.find_command_possibilities(meth)
-      len = meth.to_s.length
-      possibilities = all_commands.merge(map).keys.select { |n|
-        meth == n[0, len]
+    # 
+    # @param [#to_s] input
+    #   Input to match to command names.
+    # 
+    def self.find_command_possibilities input
+      input = input.to_s
+
+      possibilities = all_commands.merge(map).keys.select { |name|
+        name.start_with? input
       }.sort
+
       unique_possibilities = possibilities.map { |k| map[k] || k }.uniq
 
-      if possibilities.include?(meth)
-        [meth]
+      results = if possibilities.include? input
+        [ input ]
       elsif unique_possibilities.size == 1
         unique_possibilities
       else
         possibilities
       end
+
+      logger.trace "Found #{ results.length } command possibilities",
+        results: results,
+        possibilities: possibilities,
+        unique_possibilities: unique_possibilities
+      
+      results
     end
 
     singleton_class.send :alias_method, :find_task_possibilities,
@@ -914,9 +978,9 @@ class Thor
 
 
     def self.subcommand_help(cmd)
-      logger.trace __method__.to_s,
-        cmd: cmd,
-        caller: caller
+      # logger.trace __method__.to_s,
+      #   cmd: cmd,
+      #   caller: caller
       
       desc "help [COMMAND]", "Describe subcommands or one specific subcommand"
       

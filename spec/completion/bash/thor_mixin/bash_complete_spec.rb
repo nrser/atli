@@ -53,7 +53,8 @@ describe_spec_file(
                 "bash-complete",
                 "dashed-main-cmd",
                 "underscored_main_cmd",
-                "alpha",
+                "my-alpha-sub",
+                "my_beta_sub",
               ].sort
             end
           end # WHEN "only the program name has been typed"
@@ -77,9 +78,15 @@ describe_spec_file(
             end
           end
 
-          _when words: [ basename, 'al' ] do
-            it "responds with the `alpha` subcommand" do
-              is_expected.to eq [ 'alpha' ]
+          _when words: [ basename, 'my-al' ] do
+            it "responds with the `alpha-sub` subcommand" do
+              is_expected.to eq [ 'my-alpha-sub' ]
+            end
+          end
+
+          _when words: [ basename, 'my' ] do
+            it "responds with both subcmds" do
+              is_expected.to eq [ 'my-alpha-sub', 'my_beta_sub' ].sort
             end
           end
         
@@ -90,25 +97,22 @@ describe_spec_file(
           "matching command with dashed usage", 
           "(dashed-main-cmd)"
         ) do
-          _when "`request.cur` includes neither dash nor underscore" do
-            let( :request ) { build_request '$0', 'dashed' }
-
+          _when "`request.cur` includes neither dash nor underscore",
+                words: [ basename, 'dashed' ] do
             it "responds with the usage format (dashed)" do
               is_expected.to eq ['dashed-main-cmd']
             end
           end
 
-          _when "`request.cur` includes dash" do
-            let( :request ) { build_request '$0', 'dashed-ma' }
-
+          _when "`request.cur` includes dash",
+                words: [ basename, 'dashed-ma' ] do
             it "responds with the usage format (dashed)" do
               is_expected.to eq ['dashed-main-cmd']
             end
           end
 
-          _when "`request.cur` includes underscore" do
-            let( :request ) { build_request '$0', 'dashed_' }
-            
+          _when "`request.cur` includes underscore",
+                words: [ basename, 'dashed_' ] do
             it "responds with the underscored format" do
               is_expected.to eq ['dashed_main_cmd']
             end
@@ -121,30 +125,102 @@ describe_spec_file(
           "(underscored_main_cmd)"
          ) do
 
-          _when "`request.cur` includes neither dash nor underscore" do
-            let( :request ) { build_request basename, 'underscored' }
-
+          _when "`request.cur` includes neither dash nor underscore",
+                words: [ basename, 'underscored' ] do
             it "responds with the usage format (underscored)" do
               is_expected.to eq ['underscored_main_cmd']
             end
           end
 
-          _when "`request.cur` includes a dash" do
-            let( :request ) { build_request basename, 'underscored-' }
-            
+          _when "`request.cur` includes a dash",
+                words: [ basename, 'underscored-' ] do
             it "responds with the dashed format" do
                is_expected.to eq ['underscored-main-cmd']
             end
           end
 
-          _when "`request.cur` includes an underscore" do
-            let( :request ) { build_request basename, 'underscored_m' }
-            
+          _when "`request.cur` includes an underscore",
+                words: [ basename, 'underscored_m' ] do
             it "responds with the underscored format (usage in this case)" do
                is_expected.to eq ['underscored_main_cmd']
             end
           end
         end # CASE "matching command with underscored usage" *****************
+
+
+        setup "words = [#{ basename }, sub, cur]" do
+
+          let( :words ) { [ basename, sub, cur ] }
+
+          use_case "matches subcommand and passes on to it" do
+
+            _when "`sub` is exact subcmd usage and `cur` is empty",
+                  sub: 'my-alpha-sub',
+                  cur: '' do
+              it "responds with all the subcmd's commands" do
+                is_expected.to eq [
+                  "dashed-alpha-cmd",
+                  "underscored_alpha_cmd",
+                  "help",
+                ].sort
+              end
+            end # WHEN
+
+
+            _when "`sub` is a partial but unique match,",
+                  "and `cur` is empty",
+                  sub: 'my-alpha',
+                  cur: '' do
+              it "responds with all the subcmd's commands" do
+                is_expected.to eq [
+                  "dashed-alpha-cmd",
+                  "underscored_alpha_cmd",
+                  "help",
+                ].sort
+              end
+            end # WHEN
+
+
+            _when "`sub` is a partial but NOT unique match,",
+                  "and `cur` is empty",
+                  sub: 'my',
+                  cur: '' do
+              it "responds with no matches" do
+                is_expected.to eq []
+              end
+            end # WHEN
+
+
+            _when "`sub` is a underscored but usage is dashed,",
+                  "and `cur` is empty",
+                  sub: 'my_alpha_sub',
+                  cur: '' do
+              it "responds with all the subcmd's commands" do
+                is_expected.to eq [
+                  "dashed-alpha-cmd",
+                  "underscored_alpha_cmd",
+                  "help",
+                ].sort
+              end
+            end # WHEN
+
+
+            _when "`sub` is a dashed but usage is underscored,",
+                  "and `cur` is empty",
+                  sub: 'my-beta-sub',
+                  cur: '' do
+              it "responds with all the subcmd's commands" do
+                is_expected.to eq [
+                  "dashed-beta-cmd",
+                  "underscored_beta_cmd",
+                  "help",
+                ].sort
+              end
+            end # WHEN
+
+          end # CASE matches exact subcommand and passes on to it
+
+        end # SETUP words = [basename, sub, cur]
 
       end # SETUP "sorted results when passed `request`"
     end # METHOD :bash_complete

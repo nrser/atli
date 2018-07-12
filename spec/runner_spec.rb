@@ -41,14 +41,14 @@ describe Thor::Runner do
 
     it "raises error if a class/command cannot be found" do
       content = capture(:stderr) { Thor::Runner.start(%w(help unknown)) }
-      expect(content.strip).to eq('Could not find command "unknown" in "default" namespace.')
+      expect(content.strip).to match /\ACould not find command \"unknown\" in \"default\" namespace/
     end
 
     it "raises error if a class/command cannot be found for a setup without thorfiles" do
       when_no_thorfiles_exist do
         expect(Thor::Runner).to receive :exit
         content = capture(:stderr) { Thor::Runner.start(%w(help unknown)) }
-        expect(content.strip).to eq('Could not find command "unknown".')
+        expect(content.strip).to match /\ACould not find command \"unknown\"/
       end
     end
   end
@@ -87,7 +87,7 @@ describe Thor::Runner do
     it "raises an error if class/command can't be found" do
       ARGV.replace %w(unknown)
       content = capture(:stderr) { Thor::Runner.start }
-      expect(content.strip).to eq('Could not find command "unknown" in "default" namespace.')
+      expect(content.strip).to match /\ACould not find command \"unknown\" in \"default\" namespace/
     end
 
     it "raises an error if class/command can't be found in a setup without thorfiles" do
@@ -95,7 +95,7 @@ describe Thor::Runner do
         ARGV.replace %w(unknown)
         expect(Thor::Runner).to receive :exit
         content = capture(:stderr) { Thor::Runner.start }
-        expect(content.strip).to eq('Could not find command "unknown".')
+        expect(content.strip).to match /\ACould not find command \"unknown\"/
       end
     end
 

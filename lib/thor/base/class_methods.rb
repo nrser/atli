@@ -304,25 +304,24 @@ module ClassMethods
   
   # Returns the commands for this Thor class.
   #
-  # ==== Returns
-  # OrderedHash:: An ordered hash with commands names as keys and
-  #               Thor::Command objects as values.
+  # @return [HashWithIndifferentAccess<String, Thor::Command>]
+  # An hash with commands names as keys and Thor::Command objects as values.
   #
   def commands
-    @commands ||= Thor::CoreExt::OrderedHash.new
+    @commands ||= HashWithIndifferentAccess.new
   end
   alias_method :tasks, :commands
   
   
   # Returns the commands for this Thor class and all subclasses.
   #
-  # ==== Returns
-  # OrderedHash:: An ordered hash with commands names as keys and
-  #               Thor::Command objects as values.
+  # @return [HashWithIndifferentAccess<String, Thor::Command>]
+  #   An hash with commands names as keys and {Thor::Command}
+  #   objects as values.
   #
   def all_commands
     @all_commands ||= from_superclass(  :all_commands,
-                                        Thor::CoreExt::OrderedHash.new )
+                                        HashWithIndifferentAccess.new )
     @all_commands.merge!(commands)
   end
   alias_method :all_tasks, :all_commands
@@ -451,13 +450,12 @@ module ClassMethods
   # For details on why this is here see
   # {file:doc/files/notes/too-broken-to-fail.md Too Broken to Fail}.
   # 
-  def exec!(given_args = ARGV, config = {})
+  def exec! given_args = ARGV, config = {}
     execution = Thor::Execution.new thor_class:   self,
                                     given_args:   given_args,
                                     thor_config:  config
-    
     execution.exec!
-  end # #start
+  end # #exec!
   
 
   # Allows to use private methods from parent in child classes as commands.

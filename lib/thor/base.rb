@@ -12,7 +12,6 @@ require 'nrser'
 # -----------------------------------------------------------------------
 require "thor/command"
 require "thor/core_ext/hash_with_indifferent_access"
-require "thor/core_ext/ordered_hash"
 require "thor/error"
 require "thor/invocation"
 require "thor/parser"

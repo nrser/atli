@@ -39,7 +39,6 @@ describe Thor::Util do
     end
 
     it "accepts class and module objects" do
-      expect(Thor::Util.namespace_from_thor_class(Thor::CoreExt::OrderedHash)).to eq("thor:core_ext:ordered_hash")
       expect(Thor::Util.namespace_from_thor_class(Thor::Util)).to eq("thor:util")
     end
 
