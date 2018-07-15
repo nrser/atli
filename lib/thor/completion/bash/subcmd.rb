@@ -68,7 +68,7 @@ class Subcmd < ::Thor
     rescue StandardError => error
       logger.error "Error raised processing Bash complete request",
         { request: request },
-        errror
+        error
       
       []
     end
