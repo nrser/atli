@@ -112,7 +112,7 @@ module CommandMixin
     return bash_complete_cur_split( request: request ) if request.split
     
     if request.cur == ''
-      return options.
+      return options.values.
         flat_map { |option| option.long_switch_tokens }.
         # HACK  Just throw help in there... it's actually a command alias,
         #       FML.. prob why this lib didn't exist already...

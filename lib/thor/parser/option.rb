@@ -90,7 +90,7 @@ class Thor
       [
         name.dasherize,
         *aliases.map { |alias_name|
-          self.class.alias_name_to_switch_name( alias_name )
+          self.class.alias_to_switch_name( alias_name )
         }
       ]
     end
