@@ -71,15 +71,16 @@ class Thor
         args:           args,
         local_options:  local_options
       
-      parse_options = self.class.class_options
+      # (1) parse_options = self.class.class_options
 
       # The start method splits inbound arguments at the first argument
       # that looks like an option (starts with - or --). It then calls
       # new, passing in the two halves of the arguments Array as the
       # first two parameters.
 
-      command_options = config.delete(:command_options) # hook for start
-      parse_options = parse_options.merge(command_options) if command_options
+      # (2) command_options = config.delete(:command_options) # hook for start
+      #     parse_options = parse_options.merge(command_options) if command_options
+
       if local_options.is_a?(Array)
         array_options = local_options
         hash_options = {}
@@ -93,8 +94,10 @@ class Thor
       # Let Thor::Options parse the options first, so it can remove
       # declared options from the array. This will leave us with
       # a list of arguments that weren't declared.
+
       stop_on_unknown = \
         self.class.stop_on_unknown_option? config[:current_command]
+      
       disable_required_check = \
         self.class.disable_required_check? config[:current_command]
       
@@ -103,6 +106,18 @@ class Thor
         hash_options: hash_options,
         stop_on_unknown: stop_on_unknown,
         disable_required_check: disable_required_check
+      
+
+      # Options that we can parse from the CLI args
+      # 
+      # @type [Hash<Symbol, Thor::Option>]
+      # 
+      parse_options = [
+        self.class.class_options, # (1)
+        config.delete( :command_options ), # May be `nil`
+      ].
+        compact. # Discard any `nil`
+        reduce( {}, :merge! ) # Reduce through merging
       
       opts = Thor::Options.new( parse_options,
                                 hash_options,

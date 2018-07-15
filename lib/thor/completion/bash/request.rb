@@ -29,12 +29,15 @@ module  Bash
 # =======================================================================
   
 # Structre to hold Bash complete request parameters
-Request = I8::Struct.new \
+class Request < I8::Struct.new(
   cur: t.str,
   prev: t.str,
   cword: t.non_neg_int,
   split: t.bool,
   words: t.array( t.str )
+)
+  
+end # class Request
 
 
 # /Namespace

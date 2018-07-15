@@ -81,7 +81,7 @@ module ThorMixin
         # empty string (for which we would provide all commands as options)
         # 
         # TODO  In the future we can deal with half-written class options
-        #       I guess? Mabye? But for now we just give up.
+        #       I guess? Maybe? But for now we just give up.
         # 
         return [].tap { |results|
           logger.trace "No command or empty string found",
@@ -100,7 +100,7 @@ module ThorMixin
         }
       end
 
-      # See what possiblities we have
+      # See what possibilities we have
       possibilities = find_command_possibilities match_word.tr( '-', '_' )
 
       case possibilities.length
@@ -141,10 +141,7 @@ module ThorMixin
           request: request,
           index: index
       else
-        # It's a command, have that handle it
-        cmd.bash_complete \
-          request: request,
-          index: index
+        cmd.bash_complete request: request, index: index
       end
     end # #bash_complete
 

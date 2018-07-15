@@ -3,6 +3,8 @@ require 'active_support/core_ext/string/inflections'
 
 class Thor
   class Option < Argument #:nodoc:
+    include NRSER::Log::Mixin
+
     attr_reader :aliases, :group, :lazy_default, :hide
 
     VALID_TYPES = [:boolean, :numeric, :hash, :array, :string]
@@ -77,6 +79,53 @@ class Thor
     def switch_name
       @switch_name ||= dasherized? ? name : dasherize(name)
     end
+
+
+    def self.alias_to_switch_name alias_name
+      alias_name.sub( /\A\-{1,2}/, '' ).dasherize
+    end
+
+
+    def all_switch_names
+      [
+        name.dasherize,
+        *aliases.map { |alias_name|
+          self.class.alias_name_to_switch_name( alias_name )
+        }
+      ]
+    end
+
+
+    def short_switch_names
+      all_switch_names.select { |name| name.length == 1 }
+    end
+
+
+    def short_switch_tokens
+      short_switch_names.map { |name| "-#{ name }" }
+    end
+
+
+    def long_switch_names
+      all_switch_names.select { |name| name.length > 1 }
+    end
+
+
+    def long_switch_tokens
+      if boolean?
+        long_switch_names.flat_map { |name|
+          [ "--#{ name }", "--no-#{ name }" ]
+        }
+      else
+        long_switch_names.map { |name| "--#{ name }" }
+      end
+    end
+
+
+    def all_switch_tokens
+      [*long_switch_tokens, *short_switch_tokens]
+    end
+
 
     def human_name
       @human_name ||= dasherized? ? undasherize(name) : name

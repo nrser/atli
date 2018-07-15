@@ -9,7 +9,7 @@ module BashCompSpecHelpers
     self.class.basename
   end
 
-  def build_request *words, cword: -1, split: nil
+  def build_request *words, cword: -1, cur: nil, split: nil, prev: nil
     words.map! { |word|
       if word == '$0'
         basename
@@ -31,8 +31,8 @@ module BashCompSpecHelpers
     Thor::Completion::Bash::Request.new \
       words: words,
       cword: cword,
-      cur: words[cword],
-      prev: words[cword - 1],
+      cur: (cur || words[cword]),
+      prev: (prev || words[cword - 1]),
       split: split
   end
 

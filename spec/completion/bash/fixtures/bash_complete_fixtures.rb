@@ -129,6 +129,11 @@ module BashCompleteFixtures
     option :str_opt,
       desc: "A string option",
       type: :string
+    
+    option :str_enum_opt,
+      desc: "A string option with enum choices",
+      type: :string,
+      enum: [ 'one', 'two', 'three' ]
 
     def dashed_main_cmd
     end

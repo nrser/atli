@@ -1,6 +1,6 @@
 require 'helper'
-require_relative '../bash_comp_spec_helpers'
 
+require_relative '../bash_comp_spec_helpers'
 require_relative '../fixtures/bash_complete_fixtures'
 
 describe_spec_file(
@@ -37,7 +37,7 @@ describe_spec_file(
 
     use_case "complete :string options" do
 
-      _when words: [ basename, 'dashed-main-cmd', '--str' ] do
+      _when words: [ basename, 'dashed-main-cmd', '--str-o' ] do
         it "compeltes to `--str-opt=`" do
           is_expected.to eq ['--str-opt=']
         end
@@ -55,11 +55,50 @@ describe_spec_file(
             '--no-bool-opt',
             '--str-opt=',
             '--help',
+            '--str-enum-opt=',
           ].sort
         end
       end # WHEN
 
     end # CASE complete :string options
+
+
+    use_case "Provide value completions for :enum options" do
+
+      _when "just the option name part has been filled in" do
+
+        # A real one:
+        # 
+        #     :request => {
+        #         :words => [
+        #             [0] "locd",
+        #             [1] "agent",
+        #             [2] "add",
+        #             [3] "--label="
+        #         ],
+        #         :cword => 3,
+        #           :cur => "",
+        #         :prev => "--label",
+        #         :split => true
+        #     },
+        # 
+        let( :request ) {
+          build_request \
+            basename,
+            'dashed-main',
+            '--str-enum-opt=',
+            cword: 2,
+            split: true,
+            cur: '',
+            prev: '--str-enum-opt'
+        }
+
+        it "responds with the option's enum choices" do
+          is_expected.to eq [ 'one', 'two', 'three' ].sort
+        end
+      end # WHEN
+
+    end # CASE
 
   end # SETUP "sorted results when passed `request`"
 end # Spec File Description
