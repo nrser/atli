@@ -144,7 +144,7 @@ class Thor
   # or :required (string). If you give a value, the type of the value is used.
   #
   def self.method_options(options = nil)
-    @method_options ||= {}
+    @method_options ||= HashWithIndifferentAccess.new
     build_options(options, @method_options) if options
     @method_options
   end
@@ -180,7 +180,7 @@ class Thor
   # :banner   - String to show on usage notes.
   # :hide     - If you want to hide this option from the help.
   #
-  def self.method_option(name, options = {})
+  def self.method_option(name, options = HashWithIndifferentAccess.new)
     scope = if options[:for]
       find_and_refresh_command(options[:for]).options
     else

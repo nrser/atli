@@ -86,6 +86,19 @@ module CommandMixin
               option: option
           }
 
+      elsif option.complete
+        return option.complete.call.
+          select { |value|
+            value.to_s.start_with? request.cur
+          }.
+          tap { |results|
+            logger.trace \
+              "Matched against complete option #{ option.name }",
+              prev: request.prev,
+              results: results,
+              option: option
+          }
+
       else
         return [].tap { |results|
           logger.trace \

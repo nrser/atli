@@ -137,12 +137,10 @@ module BashCompleteFixtures
     
     option :str_comp_opt,
       desc:     "A string option with dynamic completion",
-      type:     :string #,
-      # complete: -> {
-      #   [
-      #     'a', 'b', 'c'
-      #   ]
-      # }
+      type:     :string,
+      complete: -> {
+        [ 'beijing', 'berkeley', 'xiamen' ]
+      }
 
     def dashed_main_cmd
     end

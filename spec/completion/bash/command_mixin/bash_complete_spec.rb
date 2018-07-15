@@ -56,6 +56,7 @@ describe_spec_file(
             '--str-opt=',
             '--help',
             '--str-enum-opt=',
+            '--str-comp-opt=',
           ].sort
         end
       end # WHEN
@@ -63,7 +64,7 @@ describe_spec_file(
     end # CASE complete :string options
 
 
-    use_case "Provide value completions for :enum options", focus: true do
+    use_case "Provide value completions for :enum options" do
 
       _when "just the option name part has been filled in" do
 
@@ -99,7 +100,7 @@ describe_spec_file(
       end # WHEN
 
 
-      _when "part of the option value has been typed" do
+      _when "unique part of the option value has been typed" do
         # Example:
         # 
         #     :request => {
@@ -126,8 +127,97 @@ describe_spec_file(
             prev: '--str-enum-opt'
         }
 
-        it "responds with the matching enum choice" do
+        it "responds with the unique matching enum" do
           is_expected.to eq [ 'one' ]
+        end
+      end # WHEN
+
+
+      _when "non-unique part of the option value has been typed" do
+        let( :request ) {
+          build_request \
+            basename,
+            'dashed-main',
+            '--str-enum-opt=t',
+            cword: 2,
+            split: true,
+            cur: 't',
+            prev: '--str-enum-opt'
+        }
+
+        it "responds with the matching enum choices" do
+          is_expected.to eq [ 'two', 'three' ].sort
+        end
+      end # WHEN
+
+    end # CASE
+
+
+    use_case "Provide value completions for :complete options", focus: true do
+
+      describe "verify {ArgumentMixin} has been mixed in correctly" do
+        describe_class Thor::Argument do
+          it do
+            is_expected.to include Thor::Completion::Bash::ArgumentMixin
+          end
+        end
+
+        describe_class BashCompleteFixtures::Main do
+          describe 'dashed_main_cmd Command' do
+            subject { super().all_commands[:dashed_main_cmd] }
+
+            it { is_expected.to be_a Thor::Command }
+
+            describe "str_comp_opt Option" do
+              subject { super().options[:str_comp_opt] }
+
+              it { is_expected.to be_a Thor::Option }
+
+              describe_attr :complete do
+                it do
+                  is_expected.to be_a( Proc ).and have_attributes( arity: 0)
+                end
+              end
+            end
+          end
+        end
+      end # describe "verify {ArgumentMixin} has been mixed in correctly"
+
+
+      _when "just the option name part has been filled in" do
+
+        let( :request ) {
+          build_request \
+            basename,
+            'dashed-main',
+            '--str-comp-opt=',
+            cword: 2,
+            split: true,
+            cur: '',
+            prev: '--str-comp-opt'
+        }
+
+        it "responds with the option's enum choices" do
+          is_expected.to eq [ 'beijing', 'berkeley', 'xiamen' ].sort
+        end
+      end # WHEN
+
+
+      _when "part of the option value has been typed" do
+
+        let( :request ) {
+          build_request \
+            basename,
+            'dashed-main',
+            '--str-comp-opt=be',
+            cword: 2,
+            split: true,
+            cur: 'be',
+            prev: '--str-comp-opt'
+        }
+
+        it "responds with the matching enum choice" do
+          is_expected.to eq [ 'beijing', 'berkeley' ].sort
         end
       end # WHEN
 

@@ -5,6 +5,7 @@
 # Project / Package
 # -----------------------------------------------------------------------
 
+require_relative './bash/argument_mixin'
 require_relative './bash/command_mixin'
 require_relative './bash/request'
 require_relative './bash/subcmd'
@@ -68,12 +69,18 @@ module Bash
   # 
   def self.included base
     
-    unless ThorMixin === Thor
+    unless Thor.include? ThorMixin
       Thor.send :include, ThorMixin
     end
 
-    unless CommandMixin === Thor::Command
+    unless Thor::Command.include? CommandMixin
       Thor::Command.send :include, CommandMixin
+    end
+
+    unless Thor::Argument.include? ArgumentMixin
+      # Needs to be "prepended" so that {ArgumentMixin#initialize} gets in
+      # the init call chain
+      Thor::Argument.send :prepend, ArgumentMixin
     end
 
     subcmd_class = Class.new Subcmd do
