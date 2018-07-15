@@ -66,65 +66,92 @@ class Thor
     #
     # config<Hash>:: Configuration for this Thor class.
     #
-    def initialize(args = [], local_options = {}, config = {})
-      logger.debug "#{ self.class.name }#initialize",
-        args:           args,
-        local_options:  local_options
-      
-      # (1) parse_options = self.class.class_options
+    def initialize args = [], options_args_or_defaults = {}, config = {}
+      # Before {#initialize} is called arguments have been split out into
+      # either:
+      # 
+      # 1.  Positional `args` and args that need to be parsed for options.
+      # 
+      # 2.  Positional `args` and already parsed option values that we call
+      #     "defaults".
 
-      # The start method splits inbound arguments at the first argument
-      # that looks like an option (starts with - or --). It then calls
-      # new, passing in the two halves of the arguments Array as the
-      # first two parameters.
-
-      # (2) command_options = config.delete(:command_options) # hook for start
-      #     parse_options = parse_options.merge(command_options) if command_options
-
-      if local_options.is_a?(Array)
-        array_options = local_options
-        hash_options = {}
+      if options_args_or_defaults.is_a? Array
+        # Case (1)
+        # 
+        # The start method splits inbound arguments at the first argument
+        # that looks like an option (starts with - or --). It then calls
+        # new, passing in the two halves of the arguments Array as the
+        # first two parameters.
+        # 
+        # In this case the first Array stays as `args` and the second Array
+        # gets assigned to `args_to_parse_for_options` to be parsed for
+        # options:
+        # 
+        args_to_parse_for_options = options_args_or_defaults
+        option_defaults = {}
       else
+        # Case (2)
+        # 
         # Handle the case where the class was explicitly instantiated
         # with pre-parsed options.
-        array_options = []
-        hash_options = local_options
+        # 
+        args_to_parse_for_options = []
+        option_defaults = options_args_or_defaults
       end
 
-      # Let Thor::Options parse the options first, so it can remove
+      logger.debug "#{ self.class.name }#initialize",
+        args:                       args,
+        options_args_or_defaults:   options_args_or_defaults,
+        args_to_parse_for_options:  args_to_parse_for_options,
+        option_defaults:            option_defaults
+
+      # Let {Thor::Options} parse the options first, so it can remove
       # declared options from the array. This will leave us with
       # a list of arguments that weren't declared.
+
+      # Hash of {Thor::Option} that we can parse from the CLI args
+      # keyed by their {Thor::Option#name}.
+      # 
+      # @type [HashWithIndifferentAccess<String, Thor::Option>]
+      # 
+      options_to_parse_by_name = [
+        # Add class-level options
+        self.class.class_options,
+
+        # Options passed in by {Thor.dispatch} for the command to be
+        # invoked. May be `nil`, though I'm not totally sure when... in that
+        # case those options won't be parsed.
+        # 
+        # This was
+        # 
+        #     config.delete( :command_options ),
+        # 
+        # though I can't figure out why. Specs still pass without it..
+        # 
+        config.fetch( :command_options, {} ),
+      ].reduce( HashWithIndifferentAccess.new, :merge! )
 
       stop_on_unknown = \
         self.class.stop_on_unknown_option? config[:current_command]
       
       disable_required_check = \
         self.class.disable_required_check? config[:current_command]
-      
-      logger.debug "Ready to create options",
-        array_options: array_options,
-        hash_options: hash_options,
-        stop_on_unknown: stop_on_unknown,
-        disable_required_check: disable_required_check
-      
 
-      # Options that we can parse from the CLI args
-      # 
-      # @type [Hash<Symbol, Thor::Option>]
-      # 
-      parse_options = [
-        self.class.class_options, # (1)
-        config.delete( :command_options ), # May be `nil`
-      ].
-        compact. # Discard any `nil`
-        reduce( {}, :merge! ) # Reduce through merging
+      logger.trace "Ready to create options",
+        options_to_parse_by_name:     options_to_parse_by_name,
+        option_defaults:              option_defaults,
+        stop_on_unknown:              stop_on_unknown,
+        disable_required_check:       disable_required_check,
+        args:                         args,
+        args_to_parse_for_options:    args_to_parse_for_options
       
-      opts = Thor::Options.new( parse_options,
-                                hash_options,
-                                stop_on_unknown,
-                                disable_required_check )
+      options_parser = Thor::Options.new \
+        options_to_parse_by_name,
+        option_defaults,
+        stop_on_unknown,
+        disable_required_check
       
-      self.options = opts.parse(array_options)
+      self.options = options_parser.parse args_to_parse_for_options
       
       if config[:class_options]
         self.options = config[:class_options].merge(options)
@@ -132,7 +159,9 @@ class Thor
 
       # If unknown options are disallowed, make sure that none of the
       # remaining arguments looks like an option.
-      opts.check_unknown! if self.class.check_unknown_options?(config)
+      if self.class.check_unknown_options? config
+        options_parser.check_unknown!
+      end
 
       # Add the remaining arguments from the options parser to the
       # arguments passed in to initialize. Then remove any positional
@@ -140,12 +169,16 @@ class Thor
       # by Thor::Group). Tis will leave us with the remaining
       # positional arguments.
       to_parse  = args
-      unless self.class.strict_args_position?(config)
-        to_parse += opts.remaining
+      unless self.class.strict_args_position? config
+        to_parse += options_parser.remaining
       end
 
-      thor_args = Thor::Arguments.new(self.class.arguments)
-      thor_args.parse(to_parse).each { |k, v| __send__("#{k}=", v) }
+      thor_args = Thor::Arguments.new self.class.arguments
+
+      # Set the arguments as instance variables.
+      thor_args.parse( to_parse ).each { |k, v| __send__ "#{k}=", v }
+
+      # Set whatever is left as args
       @args = thor_args.remaining
     end
     

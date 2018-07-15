@@ -65,19 +65,22 @@ class Thor
     # @param [Hash<Symbol, Thor::Option>] hash_options
     #   
     # 
-    def initialize  hash_options = {},
-                    defaults = {},
+    def initialize  options_to_parse_by_name = {},
+                    option_default_values = {},
                     stop_on_unknown = false,
                     disable_required_check = false
       @stop_on_unknown = stop_on_unknown
       @disable_required_check = disable_required_check
-      options = hash_options.values
-      super(options)
+
+      options = options_to_parse_by_name.values
+      super( options )
 
       # Add defaults
-      defaults.each do |key, value|
-        @assigns[key.to_s] = value
-        @non_assigned_required.delete(hash_options[key])
+      option_default_values.each do |option_name, value|
+        @assigns[ option_name.to_s ] = value
+
+        @non_assigned_required.delete \
+          options_to_parse_by_name[ option_name ]
       end
 
       @shorts = {}

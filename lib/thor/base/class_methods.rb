@@ -212,11 +212,15 @@ module ClassMethods
   #
   # If you prefer more detailed declaration, check class_option.
   #
-  # ==== Parameters
-  # Hash[Symbol => Object]
+  # @param [Hash<(String | Symbol), Object>] options
+  #   New option definitions to add via {#build_options}.
+  # 
+  # @return [HashWithIndifferentAccess<String, Thor::Option>]
+  #   Hash of option names to the option instances.
   #
-  def class_options(options = nil)
-    @class_options ||= from_superclass(:class_options, {})
+  def class_options options = nil
+    @class_options ||= \
+      from_superclass( :class_options, HashWithIndifferentAccess.new )
     build_options(options, @class_options) if options
     @class_options
   end
@@ -597,11 +601,12 @@ module ClassMethods
     # name<Symbol>:: The name of the argument.
     # options<Hash>:: Described in both class_option and method_option.
     # scope<Hash>:: Options hash that is being built up
-    def build_option(name, options, scope) #:nodoc:
-      scope[name] = Thor::Option.new(
+    def build_option(name, options, scope)
+      option = Thor::Option.new(
         name,
         options.merge(:check_default_type => check_default_type?)
       )
+      scope[option.name] = option
     end
     
     
@@ -610,11 +615,17 @@ module ClassMethods
     #
     #   build_options :foo => true, :bar => :required, :baz => :string
     #
-    # ==== Parameters
-    # Hash[Symbol => Object]
-    def build_options(options, scope) #:nodoc:
+    # @param [Hash<(String | Symbol), Object>] options
+    # 
+    # @param [HashWithIndifferentAccess<String, Thor::Option>] scope
+    # 
+    # @return [nil]
+    #   New {Thor::Option} are added to `scope`.
+    # 
+    def build_options options, scope
       options.each do |key, value|
-        scope[key] = Thor::Option.parse(key, value)
+        option = Thor::Option.parse key, value
+        scope[option.name] = option
       end
     end
     

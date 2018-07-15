@@ -15,10 +15,10 @@ describe Thor::Actions do
 
   describe "on include" do
     it "adds runtime options to the base class" do
-      expect(MyCounter.class_options.keys).to include(:pretend)
-      expect(MyCounter.class_options.keys).to include(:force)
-      expect(MyCounter.class_options.keys).to include(:quiet)
-      expect(MyCounter.class_options.keys).to include(:skip)
+      expect(MyCounter.class_options.keys).to include('pretend')
+      expect(MyCounter.class_options.keys).to include('force')
+      expect(MyCounter.class_options.keys).to include('quiet')
+      expect(MyCounter.class_options.keys).to include('skip')
     end
   end
 
