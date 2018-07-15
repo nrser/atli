@@ -752,12 +752,12 @@ class Thor
 
     # The method responsible for dispatching given the args.
     # 
-    # @param [nil | String] meth
-    #   The method name of the command to run. Seems like it's always 
+    # @param [nil | String | Symbol] meth
+    #   The method name of the command to run, which I *think* will be `nil`
+    #   when running the "default command"? haven't messed with that yet...
     #   
-    #   
-    # 
     # @param [Array<String>] given_args
+    # 
     def self.dispatch meth, given_args, given_opts, config # rubocop:disable MethodLength
       logger.trace "START #{ self.safe_name }.#{ __method__ }",
         meth: meth,
