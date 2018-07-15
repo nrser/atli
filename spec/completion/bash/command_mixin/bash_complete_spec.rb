@@ -63,7 +63,7 @@ describe_spec_file(
     end # CASE complete :string options
 
 
-    use_case "Provide value completions for :enum options" do
+    use_case "Provide value completions for :enum options", focus: true do
 
       _when "just the option name part has been filled in" do
 
@@ -95,6 +95,39 @@ describe_spec_file(
 
         it "responds with the option's enum choices" do
           is_expected.to eq [ 'one', 'two', 'three' ].sort
+        end
+      end # WHEN
+
+
+      _when "part of the option value has been typed" do
+        # Example:
+        # 
+        #     :request => {
+        #         :cword => 3,
+        #         :words => [
+        #             [0] "locd",
+        #             [1] "agent",
+        #             [2] "add",
+        #             [3] "--label=abc"
+        #         ],
+        #         :split => true,
+        #         :prev => "--label",
+        #           :cur => "abc"
+        #     },
+        # 
+        let( :request ) {
+          build_request \
+            basename,
+            'dashed-main',
+            '--str-enum-opt=on',
+            cword: 2,
+            split: true,
+            cur: 'on',
+            prev: '--str-enum-opt'
+        }
+
+        it "responds with the matching enum choice" do
+          is_expected.to eq [ 'one' ]
         end
       end # WHEN
 

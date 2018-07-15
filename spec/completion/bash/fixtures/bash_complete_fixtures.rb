@@ -134,6 +134,15 @@ module BashCompleteFixtures
       desc: "A string option with enum choices",
       type: :string,
       enum: [ 'one', 'two', 'three' ]
+    
+    option :str_comp_opt,
+      desc:     "A string option with dynamic completion",
+      type:     :string #,
+      # complete: -> {
+      #   [
+      #     'a', 'b', 'c'
+      #   ]
+      # }
 
     def dashed_main_cmd
     end
