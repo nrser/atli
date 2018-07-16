@@ -1,7 +1,7 @@
 require 'helper'
 
-require_relative '../bash_comp_spec_helpers'
-require_relative '../fixtures/bash_complete_fixtures'
+require_relative './bash_comp_spec_helpers'
+require_relative './fixtures/bash_complete_fixtures'
 
 describe_spec_file(
   spec_path:        __FILE__,
@@ -153,7 +153,7 @@ describe_spec_file(
     end # CASE
 
 
-    use_case "Provide value completions for :complete options", focus: true do
+    use_case "Provide value completions for :complete options" do
 
       describe "verify {ArgumentMixin} has been mixed in correctly" do
         describe_class Thor::Argument do
@@ -163,7 +163,7 @@ describe_spec_file(
         end
 
         describe_class BashCompleteFixtures::Main do
-          describe 'dashed_main_cmd Command' do
+          describe "dashed_main_cmd Command" do
             subject { super().all_commands[:dashed_main_cmd] }
 
             it { is_expected.to be_a Thor::Command }

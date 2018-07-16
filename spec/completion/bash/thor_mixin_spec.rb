@@ -1,7 +1,7 @@
 require 'helper'
 
-require_relative '../bash_comp_spec_helpers'
-require_relative '../fixtures/bash_complete_fixtures'
+require_relative './bash_comp_spec_helpers'
+require_relative './fixtures/bash_complete_fixtures'
 
 describe_spec_file(
   spec_path:        __FILE__,
