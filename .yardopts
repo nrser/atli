@@ -1,6 +1,7 @@
 --protected
 --output-dir doc/site
 --markup rdoc
+--plugin activesupport-concern
 -
 LICENSE.md
 README.md

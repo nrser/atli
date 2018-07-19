@@ -46,6 +46,8 @@ Gem::Specification.new do |spec|
   
   # Doc site generation with `yard`
   spec.add_development_dependency 'yard', '~> 0.9.12'
+  # Add support for {ActiveSupport::Concern} to Yard
+  spec.add_development_dependency 'yard-activesupport-concern', '~> 0.0.1'
   
   # This being installed *seems* to help Yard do the right things with
   # markdown files...
