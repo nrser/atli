@@ -7,6 +7,7 @@ class Thor
                               :long_description,
                               :usage,
                               :examples,
+                              :arguments,
                               :options,
                               :ancestor_name )
     
@@ -19,6 +20,7 @@ class Thor
                     long_description: nil,
                     usage: nil,
                     examples: [],
+                    arguments: [],
                     options: nil
       super \
         name.to_s,
@@ -26,6 +28,7 @@ class Thor
         long_description,
         usage,
         examples,
+        arguments,
         options || {}
     end
 
@@ -176,10 +179,12 @@ class Thor
       formatted ||= "".dup
 
       # Add usage with required arguments
-      formatted << if klass && !klass.arguments.empty?
+      logger.info "HERE", klass: klass
+      arguments = klass && klass&.arguments( command: self ) || []
+      formatted << unless arguments.empty?
                      usage.to_s.gsub(/^#{name}/) do |match|
                        match  << " " \
-                              << klass.arguments.map(&:usage).compact.join(" ")
+                              << arguments.map(&:usage).compact.join(" ")
                      end
                    else
                      usage.to_s
@@ -213,7 +218,7 @@ class Thor
     # 
     # @note
     #   In reality, since input words have `-` replaced with `_` when finding
-    #   their instances durring execution, 
+    #   their instances during execution, 
     # 
     # @return [Hash<Symbol, String>]
     #   Keys and values in order (and order matters when completing commands,

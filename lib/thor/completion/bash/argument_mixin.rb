@@ -41,15 +41,56 @@ module ArgumentMixin
 
   attr_reader :complete
 
-  def initialize name, options = {}
-    logger = NRSER::Log[ArgumentMixin]
-    logger.level = :trace
-    logger.trace "INIT",
-      argument: self,
-      options: options
+  def self.included base
+    # Swap initialize out
 
-    @complete = options[:complete]
-    super
+    base.class_eval do
+      alias_method  \
+        :initialize_before_bash_comp,
+        :initialize
+
+      def initialize name, options = {}
+        @complete = options[:complete]
+        send \
+          :initialize_before_bash_comp,
+          name,
+          options
+      end
+    end
+  end
+  
+
+  def bash_complete request:, klass:
+    logger.level = :trace
+
+    logger.trace "ENTERING #{ self.class }##{ __method__ }",
+      name: name,
+      complete: complete,
+      request: request,
+      klass: klass
+
+    unless complete
+      return [].tap { |results|
+        logger.trace "No `#complete` proc to call",
+          results: results
+      }
+    end
+
+    values = case complete.arity
+    when 0
+      complete.call
+    else
+      complete.call request: request, klass: klass, command: self
+    end
+
+    logger.trace "Got values", values: values
+
+    values.
+      select { |value| value.start_with? request.cur }.
+      tap { |results|
+        logger.trace "Selected values for argument #{ name }",
+          results: results
+      }
   end
   
 end # module ArgumentMixin

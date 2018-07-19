@@ -9,8 +9,8 @@ class MyCounter < Thor::Group
   source_root File.expand_path(File.dirname(__FILE__))
   source_paths << File.expand_path("broken", File.dirname(__FILE__))
 
-  argument :first,       :type => :numeric
-  argument :second,      :type => :numeric, :default => 2
+  class_argument :first,       :type => :numeric
+  class_argument :second,      :type => :numeric, :default => 2
 
   class_option :third,    :type => :numeric, :desc => "The third argument", :default => 3,
                           :banner => "THREE", :aliases => "-t"
@@ -61,7 +61,7 @@ FOO
 end
 
 class ClearCounter < MyCounter
-  remove_argument :first, :second, :undefine => true
+  remove_class_argument :first, :second, :undefine => true
   remove_class_option :third
 
   def self.source_root

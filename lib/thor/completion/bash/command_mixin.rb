@@ -121,15 +121,21 @@ module CommandMixin
   end
 
   
-  def bash_complete_cur request:
+  def bash_complete_cur request:, arg_count:, klass:
     return bash_complete_cur_split( request: request ) if request.split
     
     if request.cur == ''
-      return options.values.
-        flat_map { |option| option.long_switch_tokens }.
-        # HACK  Just throw help in there... it's actually a command alias,
-        #       FML.. prob why this lib didn't exist already...
-        +( [ '--help' ] ).
+      results = [ '--help' ]
+
+      argument = klass.arguments( command: self )[arg_count]
+
+      if argument
+        results += argument.bash_complete( request: request, klass: klass )
+      end
+
+      results += options.values.flat_map { |option| option.long_switch_tokens }
+
+      return results.
         tap { |results|
           logger.trace "`request.cur` is ''; returning all long opts",
             results: results
@@ -154,13 +160,20 @@ module CommandMixin
       }
     end
 
-    logger.warn "I've failed"
+    argument = klass.arguments( command: self )[arg_count]
+    if argument
+      return argument.
+        bash_complete( request: request, klass: klass).
+        tap { |results|
+          logger.trace "We b here"
+        }
+    end
 
     return []
   end
 
 
-  def bash_complete request:, index:
+  def bash_complete request:, index:, klass:
     logger.level = :trace
 
     logger.trace "ENTERING #{ self.class }##{ __method__ }",
@@ -168,20 +181,22 @@ module CommandMixin
       index: index,
       index_word: request.words[index]
 
-    # Index we'll incremenet as we scan past options
+    # Index we'll increment as we scan past options
     scan_index = index
+    arg_count = 0
     
     # Skip over args (for now)
     while scan_index < request.cword &&
           scan_index < request.words.length &&
           !request.words[scan_index].start_with?( '-' )
       scan_index += 1
+      arg_count += 1
     end
 
     if  scan_index == request.cword ||
         ( request.split &&
           scan_index == request.cword - 1 )
-      return bash_complete_cur request: request
+      return bash_complete_cur request: request, arg_count: arg_count, klass: klass
     end
 
     unless scan_index < request.words.length

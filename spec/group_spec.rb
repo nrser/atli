@@ -23,7 +23,7 @@ describe Thor::Group do
 
     it "raises an error if a required argument is added after a non-required" do
       expect do
-        MyCounter.argument(:foo, :type => :string)
+        MyCounter.class_argument(:foo, :type => :string)
       end.to raise_error(ArgumentError, 'You cannot have "foo" as required argument after the non-required argument "second".')
     end
 
@@ -186,7 +186,7 @@ describe Thor::Group do
     it "can handle boolean options followed by arguments" do
       klass = Class.new(Thor::Group) do
         desc "say hi to name"
-        argument :name, :type => :string
+        class_argument :name, :type => :string
         class_option :loud, :type => :boolean
 
         def hi
@@ -203,7 +203,7 @@ describe Thor::Group do
     it "provides extra args as `args`" do
       klass = Class.new(Thor::Group) do
         desc "say hi to name"
-        argument :name, :type => :string
+        class_argument :name, :type => :string
         class_option :loud, :type => :boolean
 
         def hi

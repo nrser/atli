@@ -14,26 +14,45 @@ describe Thor::Command do
       options: options
   end
 
+  def klass_mock namespace, arguments
+    Class.new( Struct.new( :namespace, :_arguments ) ) {
+      def arguments *args
+        _arguments
+      end
+    }.new namespace, arguments
+  end
+
   describe "#formatted_usage" do
     it "includes namespace within usage" do
-      object = Struct.new(:namespace, :arguments).new("foo", [])
-      expect(command(:bar => :required).formatted_usage(object)).to eq("foo:can_has --bar=BAR")
+      object = klass_mock("foo", [])
+      expect(
+        command(:bar => :required).formatted_usage(object)
+      ).to eq("foo:can_has --bar=BAR")
     end
 
     it "includes subcommand name within subcommand usage" do
-      object = Struct.new(:namespace, :arguments).new("main:foo", [])
-      expect(command(:bar => :required).formatted_usage(object, false, true)).to eq("foo can_has --bar=BAR")
+      object = klass_mock("main:foo", [])
+      expect(
+        command(:bar => :required).formatted_usage(object, false, true)
+      ).to eq("foo can_has --bar=BAR")
     end
 
     it "removes default from namespace" do
-      object = Struct.new(:namespace, :arguments).new("default:foo", [])
-      expect(command(:bar => :required).formatted_usage(object)).to eq(":foo:can_has --bar=BAR")
+      object = klass_mock("default:foo", [])
+      expect(
+        command(:bar => :required).formatted_usage(object)
+      ).to eq(":foo:can_has --bar=BAR")
     end
 
     it "injects arguments into usage" do
       options = {:required => true, :type => :string}
-      object = Struct.new(:namespace, :arguments).new("foo", [Thor::Argument.new(:bar, options)])
-      expect(command(:foo => :required).formatted_usage(object)).to eq("foo:can_has BAR --foo=FOO")
+      object = klass_mock("foo", [Thor::Argument.new(:bar, options)])
+
+      expect( object.arguments command: 'blah' ).to have_attributes length: 1
+
+      expect(
+        command(:foo => :required).formatted_usage(object)
+      ).to eq("foo:can_has BAR --foo=FOO")
     end
   end
 

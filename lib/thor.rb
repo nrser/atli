@@ -180,7 +180,7 @@ class Thor
   # :banner   - String to show on usage notes.
   # :hide     - If you want to hide this option from the help.
   #
-  def self.method_option(name, options = HashWithIndifferentAccess.new)
+  def self.method_option name, **options
     scope = if options[:for]
       find_and_refresh_command(options[:for]).options
     else
@@ -807,7 +807,7 @@ class Thor
       instance = new(args, opts, config)
       yield instance if block_given?
       args = instance.args
-      trailing = args[Range.new(arguments.size, -1)]
+      trailing = args[ arguments( command: command ).size..-1 ]
       instance.invoke_command(command, trailing || [])
     end
     
@@ -863,9 +863,16 @@ class Thor
           long_description: @long_desc,
           usage: @usage,
           examples: examples,
-          options: method_options
+          options: method_options,
+          arguments: method_arguments
         
-        @usage, @desc, @long_desc, @method_options, @hide = nil
+        @usage,
+        @desc,
+        @long_desc,
+        @method_options,
+        @hide,
+        @method_arguments = nil
+
         true
       elsif all_commands[meth] || meth == "method_missing"
         true

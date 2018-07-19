@@ -78,9 +78,7 @@ module Bash
     end
 
     unless Thor::Argument.include? ArgumentMixin
-      # Needs to be "prepended" so that {ArgumentMixin#initialize} gets in
-      # the init call chain
-      Thor::Argument.send :prepend, ArgumentMixin
+      Thor::Argument.send :include, ArgumentMixin
     end
 
     subcmd_class = Class.new Subcmd do

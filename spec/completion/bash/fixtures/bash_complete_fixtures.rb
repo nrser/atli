@@ -121,6 +121,13 @@ module BashCompleteFixtures
                   ]
     
     desc "dashed-main-cmd", "Main command with dashed usage name."
+
+    argument :str_arg,
+      desc: "A string argument with dynamic completion",
+      type: :string,
+      complete: -> {
+        [ 'x1', 'x2', 'y' ]
+      }
     
     option :bool_opt,
       desc: "A boolean option",

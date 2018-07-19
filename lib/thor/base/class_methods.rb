@@ -129,83 +129,6 @@ module ClassMethods
   end
   
   
-  # Adds an argument to the class and creates an attr_accessor for it.
-  #
-  # Arguments are different from options in several aspects. The first one
-  # is how they are parsed from the command line, arguments are retrieved
-  # from position:
-  #
-  #   thor command NAME
-  #
-  # Instead of:
-  #
-  #   thor command --name=NAME
-  #
-  # Besides, arguments are used inside your code as an accessor
-  # (self.argument), while options are all kept in a hash (self.options).
-  #
-  # Finally, arguments cannot have type :default or :boolean but can be
-  # optional (supplying :optional => :true or :required => false), although
-  # you cannot have a required argument after a non-required argument. If
-  # you try it, an error is raised.
-  #
-  # ==== Parameters
-  # name<Symbol>:: The name of the argument.
-  # options<Hash>:: Described below.
-  #
-  # ==== Options
-  # :desc     - Description for the argument.
-  # :required - If the argument is required or not.
-  # :optional - If the argument is optional or not.
-  # :type     - The type of the argument, can be :string, :hash, :array,
-  #             :numeric.
-  # :default  - Default value for this argument. It cannot be required and
-  #             have default values.
-  # :banner   - String to show on usage notes.
-  #
-  # ==== Errors
-  # ArgumentError:: Raised if you supply a required argument after a non
-  #                 required one.
-  #
-  def argument(name, options = {})
-    is_thor_reserved_word?(name, :argument)
-    no_commands { attr_accessor name }
-
-    required = if options.key?(:optional)
-      !options[:optional]
-    elsif options.key?(:required)
-      options[:required]
-    else
-      options[:default].nil?
-    end
-
-    remove_argument name
-
-    if required
-      arguments.each do |argument|
-        next if argument.required?
-        raise ArgumentError,
-          "You cannot have #{name.to_s.inspect} as required argument " \
-          "after the non-required argument #{argument.human_name.inspect}."
-      end
-    end
-
-    options[:required] = required
-
-    arguments << Thor::Argument.new(name, options)
-  end
-  
-  
-  # Returns this class arguments, looking up in the ancestors chain.
-  #
-  # ==== Returns
-  # Array[Thor::Argument]
-  #
-  def arguments
-    @arguments ||= from_superclass(:arguments, [])
-  end
-  
-  
   # Adds a bunch of options to the set of class options.
   #
   #   class_options :foo => false, :bar => :required, :baz => :string
@@ -249,27 +172,6 @@ module ClassMethods
   #
   def class_option(name, options = {})
     build_option(name, options, class_options)
-  end
-  
-  
-  # Removes a previous defined argument. If :undefine is given, undefine
-  # accessors as well.
-  #
-  # ==== Parameters
-  # names<Array>:: Arguments to be removed
-  #
-  # ==== Examples
-  #
-  #   remove_argument :foo
-  #   remove_argument :foo, :bar, :baz, :undefine => true
-  #
-  def remove_argument(*names)
-    options = names.last.is_a?(Hash) ? names.pop : {}
-
-    names.each do |name|
-      arguments.delete_if { |a| a.name == name.to_s }
-      undef_method name, "#{name}=" if options[:undefine]
-    end
   end
   
   

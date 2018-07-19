@@ -47,7 +47,6 @@ describe_spec_file(
 
     subject { super().call( request: request, index: 1 ).sort }
 
-
     use_case "Provide dynamic completions for :complete options" do
 
       _when "just the option name part has been filled in" do
@@ -84,6 +83,53 @@ describe_spec_file(
 
         it "responds with the matching enum choice" do
           is_expected.to eq [ 'beijing', 'berkeley' ].sort
+        end
+      end # WHEN
+
+    end # CASE
+
+
+    use_case "Provide dynamic completions for :complete method arguments" do
+
+      _when "cur is an empty string" do
+
+        let( :request ) {
+          build_request \
+            basename,
+            'dashed-main',
+            ''
+        }
+
+        it "responds with option as well as argument choices" do
+          is_expected.to eq [
+            "--bool-opt",
+            "--help",
+            "--no-bool-opt",
+            "--str-comp-opt",
+            "--str-enum-opt",
+            "--str-opt",
+            'x1',
+            'x2',
+            'y'
+          ].sort
+        end
+      end # WHEN
+
+
+      _when "cur starts one of the arg's choices" do
+
+        let( :request ) {
+          build_request \
+            basename,
+            'dashed-main',
+            'x'
+        }
+
+        it "responds with option as well as argument choices" do
+          is_expected.to eq [
+            'x1',
+            'x2',
+          ].sort
         end
       end # WHEN
 

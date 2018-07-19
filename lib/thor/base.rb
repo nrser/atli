@@ -20,6 +20,7 @@ require "thor/line_editor"
 require "thor/util"
 require 'thor/execution'
 require 'thor/base/class_methods'
+require 'thor/base/arguments_concern'
 
 
 # Refinements
@@ -128,8 +129,8 @@ class Thor
         # 
         # though I can't figure out why. Specs still pass without it..
         # 
-        config.fetch( :command_options, {} ),
-      ].reduce( HashWithIndifferentAccess.new, :merge! )
+        config[:command_options],
+      ].compact.reduce( HashWithIndifferentAccess.new, :merge! )
 
       stop_on_unknown = \
         self.class.stop_on_unknown_option? config[:current_command]
@@ -173,7 +174,10 @@ class Thor
         to_parse += options_parser.remaining
       end
 
-      thor_args = Thor::Arguments.new self.class.arguments
+      thor_args = Thor::Arguments.new [
+        *self.class.class_arguments,
+        *config[:current_command]&.arguments,
+      ]
 
       # Set the arguments as instance variables.
       thor_args.parse( to_parse ).each { |k, v| __send__ "#{k}=", v }
@@ -267,6 +271,7 @@ class Thor
       base.extend ClassMethods
       base.send :include, Invocation
       base.send :include, Shell
+      base.send :include, ArgumentsConcern
       
       base.no_commands {
         base.send :include, NRSER::Log::Mixin

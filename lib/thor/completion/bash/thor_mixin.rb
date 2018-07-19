@@ -141,7 +141,7 @@ module ThorMixin
           request: request,
           index: index
       else
-        cmd.bash_complete request: request, index: index
+        cmd.bash_complete request: request, index: index, klass: self
       end
     end # #bash_complete
 
