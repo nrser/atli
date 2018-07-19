@@ -1,6 +1,8 @@
 class Thor
-  class Argument #:nodoc:
+  class Argument
     VALID_TYPES = [:numeric, :hash, :array, :string]
+
+    include NRSER::Log::Mixin
 
     attr_reader :name, :description, :enum, :required, :type, :default, :banner
     alias_method :human_name, :name
