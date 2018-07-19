@@ -1,6 +1,16 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
+# Requirements
+# ========================================================================
+
+# Project / Package
+# ------------------------------------------------------------------------
+
+# Need to make sure {Thor} is loaded first in case a user file requires
+# us here beforehand
+require 'thor'
+
 
 # Refinements
 # =======================================================================
