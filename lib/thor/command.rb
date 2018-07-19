@@ -179,8 +179,7 @@ class Thor
       formatted ||= "".dup
 
       # Add usage with required arguments
-      logger.info "HERE", klass: klass
-      arguments = klass && klass&.arguments( command: self ) || []
+      arguments = klass&.arguments( command: self ) || []
       formatted << unless arguments.empty?
                      usage.to_s.gsub(/^#{name}/) do |match|
                        match  << " " \
