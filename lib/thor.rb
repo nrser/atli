@@ -1,5 +1,6 @@
 require "set"
 require 'nrser'
+require 'thor/version'
 require "thor/base"
 require 'thor/example'
 
