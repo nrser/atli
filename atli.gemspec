@@ -9,7 +9,17 @@ Gem::Specification.new do |spec|
   spec.description = "Atli is a fork of Thor that's better or worse."
   spec.email = "neil@atli.nrser.com"
   spec.executables = %w(thor)
-  spec.files = %w(.yardopts atli.gemspec) + Dir["*.md", "bin/*", "lib/**/*.rb"]
+
+  spec.files = [
+    '.yardopts',
+    'atli.gemspec',
+    'support/completion/complete.inc.bash.erb',
+  ] + Dir[
+    "*.md",
+    "bin/*",
+    "lib/**/*.rb",
+  ]
+
   spec.homepage = "https://github.com/nrser/atli"
   spec.licenses = %w(MIT)
   spec.name = "atli"
