@@ -39,27 +39,6 @@ module  Bash
 # 
 module ArgumentMixin
 
-  attr_reader :complete
-
-  def self.included base
-    # Swap initialize out
-
-    base.class_eval do
-      alias_method  \
-        :initialize_before_bash_comp,
-        :initialize
-
-      def initialize name, options = {}
-        @complete = options[:complete]
-        send \
-          :initialize_before_bash_comp,
-          name,
-          options
-      end
-    end
-  end
-  
-
   def bash_complete request:, klass:
     logger.level = :trace
 

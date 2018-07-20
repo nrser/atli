@@ -12,16 +12,10 @@
 # Requirements
 # =======================================================================
 
-# Stdlib
-# -----------------------------------------------------------------------
-
 # Deps
 # -----------------------------------------------------------------------
 
 require 'active_support/concern'
-
-# Project / Package
-# -----------------------------------------------------------------------
 
 
 # Refinements
@@ -206,7 +200,7 @@ module ArgumentsConcern
     #
     # @return [Array<Thor::Argument>]
     #
-    def method_arguments 
+    def method_arguments
       @method_arguments ||= []
     end
 

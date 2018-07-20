@@ -21,6 +21,8 @@ require "thor/util"
 require 'thor/execution'
 require 'thor/base/class_methods'
 require 'thor/base/arguments_concern'
+require 'thor/base/shared_options_concern'
+require 'thor/base/shared_concern'
 
 
 # Refinements
@@ -48,7 +50,74 @@ class Thor
   # Shared base behavior included in {Thor} and {Thor::Group}.
   # 
   module Base
+    
+    # Module Methods
+    # ============================================================================
+    
+    # Hook called when {Thor::Base} is mixed in ({Thor} and {Thor::Group}).
+    # 
+    # Extends `base` with {Thor::Base::ClassMethods}, and includes
+    # {Thor::Invocation} and {Thor::Shell} in `base` as well.
+    # 
+    # @param [Module] base
+    #   Module (or Class) that included {Thor::Base}.
+    # 
+    # @return [void]
+    # 
+    def self.included base
+      base.extend ClassMethods
+      base.send :include, Invocation
+      base.send :include, Shell
+      base.send :include, ArgumentsConcern
+      base.send :include, SharedOptionsConcern
+      base.send :include, SharedConcern
+      
+      base.no_commands {
+        base.send :include, NRSER::Log::Mixin
+      }
+      
+    end
+
+    # Returns the classes that inherits from Thor or Thor::Group.
+    #
+    # ==== Returns
+    # Array[Class]
+    #
+    def self.subclasses
+      @subclasses ||= []
+    end
+
+    # Returns the files where the subclasses are kept.
+    #
+    # ==== Returns
+    # Hash[path<String> => Class]
+    #
+    def self.subclass_files
+      @subclass_files ||= Hash.new { |h, k| h[k] = [] }
+    end
+
+    # Whenever a class inherits from Thor or Thor::Group, we should track the
+    # class and the file on Thor::Base. This is the method responsible for it.
+    #
+    def self.register_klass_file(klass) #:nodoc:
+      file = caller[1].match(/(.*):\d+/)[1]
+      unless Thor::Base.subclasses.include?(klass)
+        Thor::Base.subclasses << klass
+      end
+
+      file_subclasses = Thor::Base.subclass_files[File.expand_path(file)]
+      file_subclasses << klass unless file_subclasses.include?(klass)
+    end
+
+    
+    # Attributes
+    # ========================================================================
+
     attr_accessor :options, :parent_options, :args
+
+
+    # Construction
+    # ========================================================================
 
     # It receives arguments in an Array and two hashes, one for options and
     # other for configuration.
@@ -187,6 +256,9 @@ class Thor
     end
     
     
+    # Instance Methods
+    # ========================================================================
+    
     protected
     # ========================================================================
       
@@ -253,61 +325,5 @@ class Thor
       
     # end protected
     
-    
-    # Module Methods
-    # ============================================================================
-    
-    # Hook called when {Thor::Base} is mixed in ({Thor} and {Thor::Group}).
-    # 
-    # Extends `base` with {Thor::Base::ClassMethods}, and includes
-    # {Thor::Invocation} and {Thor::Shell} in `base` as well.
-    # 
-    # @param [Module] base
-    #   Module (or Class) that included {Thor::Base}.
-    # 
-    # @return [void]
-    # 
-    def self.included base
-      base.extend ClassMethods
-      base.send :include, Invocation
-      base.send :include, Shell
-      base.send :include, ArgumentsConcern
-      
-      base.no_commands {
-        base.send :include, NRSER::Log::Mixin
-      }
-      
-    end
-
-    # Returns the classes that inherits from Thor or Thor::Group.
-    #
-    # ==== Returns
-    # Array[Class]
-    #
-    def self.subclasses
-      @subclasses ||= []
-    end
-
-    # Returns the files where the subclasses are kept.
-    #
-    # ==== Returns
-    # Hash[path<String> => Class]
-    #
-    def self.subclass_files
-      @subclass_files ||= Hash.new { |h, k| h[k] = [] }
-    end
-
-    # Whenever a class inherits from Thor or Thor::Group, we should track the
-    # class and the file on Thor::Base. This is the method responsible for it.
-    #
-    def self.register_klass_file(klass) #:nodoc:
-      file = caller[1].match(/(.*):\d+/)[1]
-      unless Thor::Base.subclasses.include?(klass)
-        Thor::Base.subclasses << klass
-      end
-
-      file_subclasses = Thor::Base.subclass_files[File.expand_path(file)]
-      file_subclasses << klass unless file_subclasses.include?(klass)
-    end
   end # module Base
 end # class Thor
