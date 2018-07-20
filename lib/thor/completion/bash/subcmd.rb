@@ -50,7 +50,7 @@ class Subcmd < ::Thor
   #   Never returns - manually calls `exit` when done.
   # 
   def complete *_
-    logger.level = :trace
+    # logger.level = :trace
 
     logger.trace "Starting Bash complete...",
       ARGV: ARGV,

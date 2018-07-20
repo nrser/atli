@@ -174,7 +174,7 @@ module CommandMixin
 
 
   def bash_complete request:, index:, klass:
-    logger.level = :trace
+    # logger.level = :trace
 
     logger.trace "ENTERING #{ self.class }##{ __method__ }",
       request: request,

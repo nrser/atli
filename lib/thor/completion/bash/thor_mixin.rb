@@ -56,7 +56,7 @@ module ThorMixin
     #   
     # 
     def bash_complete request:, index:
-      logger.level = :trace
+      # logger.level = :trace
 
       logger.trace __method__,
         request: request,

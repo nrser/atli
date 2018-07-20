@@ -40,7 +40,7 @@ module  Bash
 module ArgumentMixin
 
   def bash_complete request:, klass:
-    logger.level = :trace
+    # logger.level = :trace
 
     logger.trace "ENTERING #{ self.class }##{ __method__ }",
       name: name,
