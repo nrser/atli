@@ -21,7 +21,6 @@ require "thor/util"
 require 'thor/execution'
 require 'thor/base/class_methods'
 require 'thor/base/arguments_concern'
-require 'thor/base/shared_options_concern'
 require 'thor/base/shared_concern'
 
 
@@ -69,7 +68,6 @@ class Thor
       base.send :include, Invocation
       base.send :include, Shell
       base.send :include, ArgumentsConcern
-      base.send :include, SharedOptionsConcern
       base.send :include, SharedConcern
       
       base.no_commands {

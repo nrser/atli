@@ -828,24 +828,6 @@ class Thor
 
     singleton_class.send :alias_method, :subtask_help, :subcommand_help
     
-
-    # Atli Protected Class Methods
-    # ======================================================================
-    
-    # Build a Thor::SharedOption and add it to Thor.shared_method_options.
-    # 
-    # The Thor::SharedOption is returned.
-    #
-    # ==== Parameters
-    # name<Symbol>:: The name of the argument.
-    # options<Hash>::   Described in both class_option and method_option,
-    #                   with the additional `:groups` shared option keyword.
-    def self.build_shared_option(name, options)
-      shared_method_options[name] = Thor::SharedOption.new(
-        name,
-        options.merge(:check_default_type => check_default_type?)
-      )
-    end # .build_shared_option
   
   public # END protected Class Methods ***************************************
   
@@ -868,8 +850,8 @@ class Thor
       
       # Add groups (if any)
       if groups
-        self.class.find_shared_options( groups: groups ).each do |name, option|
-          name_set << name.to_s
+        self.class.find_shared( groups: groups ).each do |shared|
+          name_set << shared[:name].to_s
         end
       end
       
