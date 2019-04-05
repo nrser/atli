@@ -9,6 +9,7 @@
 
 require 'nrser'
 require 'nrser/labs/i8'
+require 'nrser/labs/i8/struct'
 
 
 # Refinements
