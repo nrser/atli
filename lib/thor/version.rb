@@ -14,7 +14,7 @@ class Thor
   # 
   # @return [String]
   # 
-  VERSION = '0.1.13'
+  VERSION = '0.1.14.dev'
   
   
   # The version of Thor that Atli is up to date with.
@@ -27,7 +27,7 @@ class Thor
   # 
   # @return [String]
   # 
-  THOR_VERSION = '0.1.13'
+  THOR_VERSION = '0.1.14.dev'
 
 
   # Are we running from the source code (vesus from a Gem install)?
