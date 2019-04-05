@@ -40,6 +40,11 @@ module Thor::Base::CommonClassOptions
           type: :boolean
   
   
+  define  :color,
+          desc: "Use color output",
+          type: :boolean
+  
+  
   def common_class_options *names
     messages = Hamster::Hash.new @@messages
     
