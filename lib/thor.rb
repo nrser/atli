@@ -850,9 +850,16 @@ class Thor
       
       # Add groups (if any)
       if groups
-        self.class.find_shared( groups: groups ).each do |shared|
-          name_set << shared[:name].to_s
-        end
+        groups = Array( groups )
+        
+        self.class.
+          shared_defs.
+          select { |shared_def|
+            groups.any? { |group| shared_def[ :groups].include? group }
+          }.
+          each do |shared|
+            name_set << shared[:name].to_s
+          end
       end
       
       options.slice( *name_set ).sym_keys
