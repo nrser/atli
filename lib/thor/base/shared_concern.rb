@@ -34,83 +34,61 @@ module SharedConcern
   
   class_methods do
   # ==========================================================================
+    
+    
+    protected
+    # ========================================================================
+      
+      def this_class_shared_defs_ref
+        @shared_defs ||= []
+      end
+      
+      
+      def copy_shared_defs_to array, inherited: true
+        array.push *this_class_shared_defs_ref
+        
+        if  inherited &&
+            superclass &&
+            superclass.respond_to?( :copy_shared_defs_to, true )
+          superclass.copy_shared_defs_to array
+        end
+        
+        array
+      end
+      
+    public # end protected ***************************************************
+    
 
-    def shared_defs
-      @shared_defs ||= []
+    def shared_defs inherited: true
+      [].tap do |array|
+        copy_shared_defs_to array, inherited: inherited
+      end
     end
-
-
-    # def normalize_kind input
-    #   {
-    #     'arg' => 'argument',
-
-    #   }
-    # end
 
 
     def def_shared kind, name:, groups: nil, **options
-      shared_defs << {
-        name: name.to_s,
-        kind: kind,
-        groups: Set[*groups],
-        options: options,
-      }
+      this_class_shared_defs_ref << {
+        name: name.to_sym,
+        kind: kind.to_sym,
+        groups: Set[*groups].freeze,
+        options: options.freeze,
+      }.freeze
     end
     
     
-    def include_shared *names, kinds: nil, groups: nil, **overrides
-      find_shared( *names, kinds: kinds, groups: groups ).
-        each do |name:, kind:, groups:, options:|
-          send kind, name, **options.merge( overrides )
-        end
-    end
-
-
-    # Find shared options given names and groups.
-    # 
-    # @param [*<Symbol>] names
-    #   Individual shared option names to include.
-    # 
-    # @param [nil | Symbol | Enumerable<Symbol>] groups:
-    #   Single or list of shared option groups to include.
-    # 
-    # @return [Hash<Symbol, Thor::SharedOption>]
-    #   Hash mapping option names (as {Symbol}) to instances.
-    # 
-    def find_shared *names, kinds: nil, groups: nil
-      groups_set = Set[*groups]
-      kinds_set = Set[*kinds]
-      names.map! &:to_s
-
-      results = []
+    def include_shared selector, **overrides
+      defs = shared_defs.select &selector
       
-      shared_defs.each do |name:, kind:, groups:, options:|
-        match = {}
-        
-        if names.include? name
-          match[:name] = true
-        end
-        
-        match_groups = groups & groups_set
-          
-        unless match_groups.empty?
-          match[:groups] = match_groups
-        end
-
-        if kinds_set.include? kind
-          match[:kind] = true
-        end
-        
-        unless match.empty?
-          results << {
-            name: name,
-            kind: kind,
-            groups: groups,
-            options: options,
-          }
-        end
+      if defs.empty?
+        logger.warn "No shared parameters found",
+          selector: selector,
+          class: self
       end
-    end # #find_shared
+      
+      defs.each do |name:, kind:, groups:, options:|
+        send kind, name, **options.merge( overrides )
+      end
+    end
 
   end # class_methods ********************************************************
   
