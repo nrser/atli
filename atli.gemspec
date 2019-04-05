@@ -4,7 +4,6 @@ $LOAD_PATH.unshift lib unless $LOAD_PATH.include?(lib)
 require "thor/version"
 
 Gem::Specification.new do |spec|
-  spec.add_development_dependency "bundler", "~> 1.0"
   spec.authors = ["Neil Souza (Atli)", "Yehuda Katz (Thor)", "José Valim (Thor)"]
   spec.description = "Atli is a fork of Thor that's better or worse."
   spec.email = "neil@atli.nrser.com"
@@ -41,6 +40,8 @@ Gem::Specification.new do |spec|
   # 
   # NOTE Development dependencies that came from Thor are in `//Gemfile`
   # 
+  
+  spec.add_development_dependency "bundler", ">= 1.0"
   
   ### Yard
   # 
